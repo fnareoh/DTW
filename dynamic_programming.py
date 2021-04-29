@@ -188,7 +188,10 @@ class DynamicMatrix:
 
     def initGlobal_DTW(self):
         """ initializes first line and first columns for a DTW"""
-        self.initGlobal_NW()
+        for i in range(1, len(self.matrix)):
+            self.matrix[i][0] = self.matrix[i - 1][0] + self.score(S[0], self.T[j - 1])
+        for j in range(1, len(self.matrix[0])):
+            self.matrix[0][j] = self.matrix[0][j - 1] + self.score(S[i - 1], self.T[0])
 
     def fill_DTW(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""

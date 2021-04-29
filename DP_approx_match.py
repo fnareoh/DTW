@@ -167,7 +167,7 @@ class DynamicMatrix:
         for i in range(1, len(self.matrix)):
             self.matrix[i][0] = self.matrix[i - 1][0] + self.gap
         for j in range(1, len(self.matrix[0])):
-            self.matrix[0][j] = self.matrix[0][j - 1] + self.gap
+            self.matrix[0][j] = 0
 
     def fill_NW(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
@@ -181,14 +181,18 @@ class DynamicMatrix:
                     self.matrix[i][j - 1] + self.gap,
                     self.matrix[i - 1][j] + self.gap,
                 )
-
-        return self.matrix[len(self.S)][len(self.T)]
+        return min(self.matrix[len(self.S)])
 
     #### DTW ####
 
     def initGlobal_DTW(self):
         """ initializes first line and first columns for a DTW"""
-        self.initGlobal_NW()
+        for i in range(1, len(self.matrix)):
+            self.matrix[i][0] = self.matrix[i - 1][0] + self.score(
+                self.S[i - 1], self.T[0]
+            )
+        for j in range(1, len(self.matrix[0])):
+            self.matrix[0][j] = 0
 
     def fill_DTW(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
@@ -202,7 +206,7 @@ class DynamicMatrix:
                     self.matrix[i - 1][j],
                 ) + self.score(self.S[i - 1], self.T[j - 1])
 
-        return self.matrix[len(self.S)][len(self.T)]
+        return min(self.matrix[len(self.S)])
 
     #### HOMO EDIT DISTANCE ####
     def homoedit_to_empty(self, x):
@@ -237,7 +241,7 @@ class DynamicMatrix:
         for i in range(1, n + 1):
             self.matrix[i][0] = H_S[0][i - 1]
         for j in range(1, m + 1):
-            self.matrix[0][j] = H_T[0][j - 1]
+            self.matrix[0][j] = 0
 
         # fill the rest of the table
         for i in range(1, n + 1):
@@ -251,15 +255,20 @@ class DynamicMatrix:
                     C.append(self.matrix[i][k] + H_T[k][j - 1])
                 self.matrix[i][j] = min(C)
 
-        return self.matrix[n][m]
+        return min(self.matrix[n])
 
     #### GENERIC PRINT ####
-    def printGlobalAln(self):
-        """ prints a global alignment of best score
+    def printBestAln(self):
+        """ prints the Best alignment of best score
             and returns the % of id
         """
         i = len(self.S)
-        j = len(self.T)
+        j = 0
+        for k in range(len(self.T)):
+            if self.matrix[i][k] <= self.matrix[i][j]:
+                j = k
+
+        pos_end = j
         alS = ""
         alT = ""
         nb_matchs = 0
@@ -289,10 +298,10 @@ class DynamicMatrix:
         # here either i=0 or j=0
 
         # dealing with the case of j>0 and i=0
-        while j > 0:
-            alS = "-" + alS
-            alT = self.T[j - 1] + alT
-            j -= 1
+        # while j > 0:
+        #    alS = "-" + alS
+        #    alT = self.T[j - 1] + alT
+        #    j -= 1
 
         # dealing with the case of i>0 and j=0
         while i > 0:
@@ -300,7 +309,8 @@ class DynamicMatrix:
             alS = self.S[i - 1] + alS
             i -= 1
 
-        return alT, alS, (float(100 * nb_matchs) / len(alS))
+        pos_start = j
+        return alT, alS, (float(100 * nb_matchs) / len(alS)), pos_start, pos_end
 
 
 def demo():
@@ -365,9 +375,15 @@ def add_al(name, original_al, closest_al, al, original_len_read, original_pos_re
         bisect.insort(closest_al[name], al)
 
 
-def evaluate_all(G, read, k, N):
-    """ Computes and prints the N closest alignment of R to all
-    substring of G of length len(R) + or -k for all distance """
+def print_closest_alignement(name, closest_al, R, G):
+    print(f"G={G}")
+    print(f"R={R} \n")
+    print(closest_al, "\n")
+
+
+def evaluate_all(G, read):
+    """ Computes and prints the closest alignment of R to all
+    substring of G """
     R = read.sequence
     original_pos_read = read.position  # original position the read was extracted from
     original_len_read = (
@@ -376,69 +392,40 @@ def evaluate_all(G, read, k, N):
     # (before modification)
 
     cost = Constant()
-    if not -k <= original_len_read - len(R) <= k:
-        raise ValueError(
-            "the original length of the extracted read must be in len(read) + or - k"
-        )
-    print(
-        f"Computing the {N} closest subsequences of G of length"
-        + f" {len(R)} +- k={k} "
-    )
-    closest_al = {"NW": [], "DTW": [], "HE": []}
-    original_al = {}
-    nb_length_computed = 0
-    for l in range(len(R) - k, len(R) + k + 1):
-        print(
-            f"Number of length of subsequence computed = {nb_length_computed} / {2*k+1}"
-        )
-        nb_length_computed += 1
-        for pos in range(0, len(G) - l):
-            S = G[pos : pos + l]
-            # Needleman and Wunsch
-            dm_NW = DynamicMatrix(S, R, cost.match, cost.mismatch, cost.gap)
-            dm_NW.initGlobal_NW()
-            score = dm_NW.fill_NW()
-            add_al(
-                "NW",
-                original_al,
-                closest_al,
-                Alignement(score, pos, l, S),
-                original_len_read,
-                original_pos_read,
-                N,
-            )
-            # Dynamic time warping distance
-            dm_DTW = DynamicMatrix(S, R, cost.match, cost.mismatch, cost.gap)
-            dm_DTW.initGlobal_DTW()
-            score = dm_DTW.fill_DTW()
-            add_al(
-                "DTW",
-                original_al,
-                closest_al,
-                Alignement(score, pos, l, S),
-                original_len_read,
-                original_pos_read,
-                N,
-            )
-            # Homo edit
-            dm_HE = DynamicMatrix(S, R, cost.match, cost.mismatch, cost.gap)
-            score = dm_HE.homoedit()
-            add_al(
-                "HE",
-                original_al,
-                closest_al,
-                Alignement(score, pos, l, S),
-                original_len_read,
-                original_pos_read,
-                N,
-            )
-
+    print(f"Computing the closest subsequence of G to R")
+    S = G
+    l = len(R)
+    # Needleman and Wunsch
+    dm_NW = DynamicMatrix(R, S, cost.match, cost.mismatch, cost.gap)
+    dm_NW.initGlobal_NW()
+    score = dm_NW.fill_NW()
+    alT, alS, percent_id, pos_start, pos_end = dm_NW.printBestAln()
     print("\n******** Needleman Wunsch **********")
-    print_list_alignements("NW", original_al, closest_al, R, G)
+    print("Distance:", score)
+    print("Alligement start-end:", pos_start, "-", pos_end)
+    print("Percentage of identical char:", percent_id)
+    print(alT, alS, sep="\n")
+
+    # Dynamic time warping distance
+    dm_DTW = DynamicMatrix(R, S, cost.match, cost.mismatch, cost.gap)
+    dm_DTW.initGlobal_DTW()
+    score = dm_DTW.fill_DTW()
+    alT, alS, percent_id, pos_start, pos_end = dm_DTW.printBestAln()
     print("\n******** Dynamic Time Warp **********")
-    print_list_alignements("DTW", original_al, closest_al, R, G)
+    print("Distance:", score)
+    print("Alligement start-end:", pos_start, "-", pos_end)
+    print("Percentage of identical char:", percent_id)
+    print(alT, alS, sep="\n")
+
+    # Homo edit
+    dm_HE = DynamicMatrix(R, S, cost.match, cost.mismatch, cost.gap)
+    score = dm_HE.homoedit()
+    alT, alS, percent_id, pos_start, pos_end = dm_HE.printBestAln()
     print("\n******** Homo edit **********")
-    print_list_alignements("HE", original_al, closest_al, R, G)
+    print("Distance:", score)
+    print("Alligement start-end:", pos_start, "-", pos_end)
+    print("Percentage of identical char:", percent_id)
+    print(alT, alS, sep="\n")
 
 
 def main():
@@ -446,14 +433,12 @@ def main():
     # G, list_read = parse_input(
     #    "data/ecoli_10kb.fa", "data/reads_coli.fastq", "data/align_reads_coli.sam"
     # )
-    G = "AAAACCTGGTAATGCTGATTAGCCGCACCGTTTTTACCCGTACGCGGACCTGTATGATGATTTCACCAAGTGCTGACGGGTTGATACCCTGTTGAT"  # genome
-    R = Read("CCGCCCCACCGTTTTTAAAACCCGT", original_pos=23, original_len=14)
-    k = 15  # the length threshold on the subsequence we consider
-    N = 5  # the maximal distance to a subsequence
+    G = "CAACGGACTGACTAGGTCTGATGTACGATCTGACTAGGAGTCAGTCAGAGCTACGATCGTACGTGACTAAAG"  # genome
+    R = Read("AGGTACTGACTGTAAAAAACG", original_pos=13, original_len=14)
 
     list_R = [R]
     for R in list_R:
-        evaluate_all(G, R, k, N)
+        evaluate_all(G, R)
 
 
 if __name__ == "__main__":
