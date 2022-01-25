@@ -314,7 +314,6 @@ class LocalDTW:
                 )
         return self.matrix[len(self.Q)][len(self.T)]
 
-    # notation de pierre est bizarre !
     def check_block_property(self):
         # Check Kuszmaul property
         for bi in range(1, len(self.end_horizontal_blocs)):
