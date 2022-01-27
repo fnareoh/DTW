@@ -315,7 +315,7 @@ class LocalDTW:
         return self.matrix[len(self.Q)][len(self.T)]
 
     def check_block_property(self):
-        # Check Kuszmaul property
+        # Check diagonal frontiere property
         for bi in range(1, len(self.end_horizontal_blocs)):
             for bj in range(1, len(self.end_vertical_blocs)):
                 # positions of the end of the current block
@@ -373,6 +373,31 @@ class LocalDTW:
                         return False
         return True
 
+    def check_block_property_2(self):
+        # Check that values inside a block never decrease down a column or along a lign
+        for bi in range(1, len(self.end_horizontal_blocs)):
+            for bj in range(1, len(self.end_vertical_blocs)):
+                # positions of the end of the current block
+                i = self.end_horizontal_blocs[bi]
+                j = self.end_vertical_blocs[bj]
+                l_x = self.end_horizontal_blocs[bi] - self.end_horizontal_blocs[bi - 1]
+                l_y = self.end_vertical_blocs[bj] - self.end_vertical_blocs[bj - 1]
+
+                if self.Q[i - 1] == self.T[j - 1]:
+                    d = 0
+                else:
+                    d = self.mismatch
+
+                for o_x in range(1, l_x):
+                    for o_y in range(1, l_y):
+                        value = self.matrix[i - l_x + o_x + 1][j - l_y + o_y + 1]
+                        left = self.matrix[i - l_x + o_x][j - l_y + o_y]
+                        top = self.matrix[i - l_x + o_x][j - l_y + o_y]
+                        if value < top or value < left:
+                            print(f"value: {value}, top:{top} left:{left}")
+                            return False
+        return True
+
 
 def generate_random_string(size, alphabet_size):
     res = ""
@@ -403,7 +428,8 @@ def search_counter_example_random_strings():
         T = generate_random_string(len_T, alphabet_size)
         Q = generate_random_string(len_Q, alphabet_size)
         ldtw = LocalDTW(Q, T, 1)
-        true_property = ldtw.check_block_property()
+        # true_property = ldtw.check_block_property()
+        true_property = ldtw.check_block_property_2()
         if nb_test % 100 == 0:
             print(f"{nb_test} have passed, still no counter example!")
     if nb_test < alphabet_size ** max_s:
