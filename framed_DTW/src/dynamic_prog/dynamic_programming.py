@@ -90,9 +90,9 @@ class Alignement:
 
 class DynamicMatrix:
     """stores a matrix |S|x|T| (|S|+1 lines and |T|+1columns),
-        sequences S and T and the score system (match, mismatch, gap)
-        defines some global alignment functions
-        """
+    sequences S and T and the score system (match, mismatch, gap)
+    defines some global alignment functions
+    """
 
     def __init__(self, S, T, match, mismatch, gap):
         """ defines and stores initial values"""
@@ -174,11 +174,14 @@ class DynamicMatrix:
             # i-th line
             for j in range(1, len(self.T) + 1):
                 # j-th column
-                self.matrix[i][j] = min(
-                    self.matrix[i - 1][j - 1],
-                    self.matrix[i][j - 1],
-                    self.matrix[i - 1][j],
-                ) + self.score(self.S[i - 1], self.T[j - 1])
+                self.matrix[i][j] = (
+                    min(
+                        self.matrix[i - 1][j - 1],
+                        self.matrix[i][j - 1],
+                        self.matrix[i - 1][j],
+                    )
+                    + self.score(self.S[i - 1], self.T[j - 1])
+                )
 
         return self.matrix[len(self.S)][len(self.T)]
 
@@ -233,8 +236,8 @@ class DynamicMatrix:
 
     #### GENERIC PRINT ####
     def printGlobalAln(self):
-        """ prints a global alignment of best score
-            and returns the % of id
+        """prints a global alignment of best score
+        and returns the % of id
         """
         i = len(self.S)
         j = len(self.T)
@@ -344,8 +347,8 @@ def add_al(name, original_al, closest_al, al, original_len_read, original_pos_re
 
 
 def evaluate_all(G, read, k, N):
-    """ Computes and prints the N closest alignment of R to all
-    substring of G of length len(R) + or -k for all distance """
+    """Computes and prints the N closest alignment of R to all
+    substring of G of length len(R) + or -k for all distance"""
     R = read.sequence
     original_pos_read = read.position  # original position the read was extracted from
     original_len_read = (
@@ -422,8 +425,11 @@ def evaluate_all(G, read, k, N):
 
 def main():
     print("******** Parsing input **********")
+    data_prefix = "../data/badread/"
     G, list_read = parse_input(
-        "data/ecoli_10kb.fa", "data/reads_coli.fastq", "data/align_reads_coli.sam"
+        data_prefix + "ecoli_10kb.fa",
+        data_prefix + "reads_coli.fastq",
+        data_prefix + "align_reads_coli.sam",
     )
     k = 2  # the length threshold on the subsequence we consider
     N = 10  # the maximal distance to a subsequence
@@ -434,4 +440,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    demo()
