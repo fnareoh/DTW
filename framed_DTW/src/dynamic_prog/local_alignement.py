@@ -7,19 +7,28 @@ from json.tool import main
 import sys
 
 
-class LocalDTW:
+class Constant:
+    match = 0
+    mismatch = 1
+    gap = 1
+
+
+class LocalMatrix:
     """
-    Stores a matrix |S|x|T| (|S|+1 lines and |T|+1columns),
-    sequences S and T and the score system (match, mismatch, gap)
+    Stores a matrix |Q|x|T| (|Q|+1 lines and |T|+1columns),
+    sequences Q and T and the score system (match, mismatch, gap)
     defines some global alignment functions
     """
 
-    def __init__(self, Q, T, mismatch):
+    def __init__(self, Q, T):
         """ defines and stores initial values"""
 
+        consta = Constant()
         self.Q = Q
         self.T = T
-        self.mismatch = mismatch
+        self.mismatch = consta.mismatch
+        self.match = consta.match
+        self.gap = consta.gap
         #      T
         #  --------
         #  |
@@ -29,6 +38,13 @@ class LocalDTW:
         self.matrix = [[] for i in range(len(Q) + 1)]
         for i in range(len(Q) + 1):
             self.matrix[i] = [0 for j in range(len(T) + 1)]
+
+        # initializes first line and first columns for a local alignment
+        for i in range(0, len(self.T) + 1):
+            self.matrix[0][i] = 0
+        for j in range(1, len(self.Q) + 1):
+            self.matrix[j][0] = sys.maxsize
+
         # self.matrix[i][j]
         # i : ith line, in S
         # j : jth column, in T
@@ -105,8 +121,8 @@ class LocalDTW:
                 is_green = not is_green
             res += line + "\n"
 
-        res += f"\n horizontal block frontiers: {self.end_horizontal_blocs}"
-        res += f"\n vertical block frontiers: {self.end_vertical_blocs}"
+        # res += f"\n horizontal block frontiers: {self.end_horizontal_blocs}"
+        # res += f"\n vertical block frontiers: {self.end_vertical_blocs}"
         # for i in range(len(self.end_horizontal_blocs)):
         #     res += f" {i}"
         # res += "\n vertical block frontiers:"
@@ -117,21 +133,15 @@ class LocalDTW:
     def get_last_value(self):
         return self.matrix[-1][-1]
 
-    #### DTW ####
     def dist(self, alpha, beta):
         if alpha == beta:
-            return 0
+            return +self.match
         return self.mismatch
 
-    def init_local_DTW(self):
 
-        """ initializes first line and first columns for a global alignment"""
-        for i in range(0, len(self.T) + 1):
-            self.matrix[0][i] = 0
-        for j in range(1, len(self.Q) + 1):
-            self.matrix[j][0] = sys.maxsize
-
-    def fill_DTW(self):
+class LocalDTW(LocalMatrix):
+    #### DTW ####
+    def fill(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
         for i in range(1, len(self.Q) + 1):
             # i-th line
@@ -217,14 +227,32 @@ class LocalDTW:
         return True
 
 
+class LocalED(LocalMatrix):
+    #### Edit distance (Needleman & Wunsch) ####
+    def fill(self):
+        """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
+        for i in range(1, len(self.Q) + 1):
+            # i-th line
+            for j in range(1, len(self.T) + 1):
+                # j-th column
+                self.matrix[i][j] = min(
+                    self.matrix[i - 1][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1]),
+                    self.matrix[i][j - 1] + self.gap,
+                    self.matrix[i - 1][j] + self.gap,
+                )
+        return self.matrix[len(self.Q)][len(self.T)]
+
+
 def main(Q, T):
-
-    ldtw = LocalDTW(Q, T, 1)
-
-    ldtw.init_local_DTW()
-
-    ldtw.fill_DTW()
+    ldtw = LocalDTW(Q, T)
+    ldtw.fill()
+    print("******** Dynamic Time Warp **********")
     print(f"{ldtw}")
+
+    led = LocalED(Q, T)
+    led.fill()
+    print("******** Edit distance **********")
+    print(f"{led}")
 
     ldtw.check_frame_block_property()
 

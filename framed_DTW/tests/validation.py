@@ -1,4 +1,4 @@
-from dynamic_prog.check_framed_DTW import LocalDTW
+from dynamic_prog.local_alignement import LocalDTW
 from frameDTW.DTW_blocks import *
 from timer import Timer
 from progress_bar import update_progress
@@ -38,9 +38,8 @@ def main(nb_tests, size_min, bound_homopol):
             update_progress(i / float(nb_tests))
             Q = QT_strings[i][0]
             T = QT_strings[i][1]
-            ldtw = LocalDTW(Q, T, 1)
-            ldtw.init_local_DTW()
-            ldtw.fill_DTW()
+            ldtw = LocalDTW(Q, T)
+            ldtw.fill()
             classic_res.append(ldtw.get_last_value())
         update_progress(1)
     classical_time.print("Durée classique = {} seconds")
