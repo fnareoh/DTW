@@ -40,10 +40,10 @@ class LocalMatrix:
             self.matrix[i] = [0 for j in range(len(T) + 1)]
 
         # initializes first line and first columns for a local alignment
-        for i in range(0, len(self.T) + 1):
-            self.matrix[0][i] = 0
-        for j in range(1, len(self.Q) + 1):
-            self.matrix[j][0] = sys.maxsize
+        for j in range(0, len(self.T) + 1):
+            self.matrix[0][j] = 0
+        for i in range(1, len(self.Q) + 1):
+            self.matrix[i][0] = sys.maxsize
 
         # self.matrix[i][j]
         # i : ith line, in S
@@ -138,9 +138,68 @@ class LocalMatrix:
             return +self.match
         return self.mismatch
 
+    def from_diag(self, i, j):
+        return (
+            self.matrix[i - 1][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1])
+            == self.matrix[i][j]
+        )
+
+    def from_left(self, i, j):
+        return False
+
+    def from_top(self, i, j):
+        return False
+
+    def trace_back(self, pos):
+        assert pos < len(self.matrix[0])
+        i = len(self.Q)
+        j = pos
+        alQ = ""
+        alT = ""
+        nb_matchs = 0
+        while i > 0 and j > 0:
+            # test first the diagonal, in order to favor diag in case of ex-aequos
+            if self.from_diag(i, j):
+                # diag
+                alQ = self.Q[i - 1] + alQ
+                alT = self.T[j - 1] + alT
+                if self.Q[i - 1] == self.T[j - 1]:
+                    nb_matchs += 1
+                i -= 1
+                j -= 1
+            elif self.from_left(i, j):
+                # left
+                alQ = "-" + alQ
+                alT = self.T[j - 1] + alT
+                j -= 1
+            elif self.from_top(i, j):
+                # up
+                alT = "-" + alT
+                alQ = self.Q[i - 1] + alQ
+                i -= 1
+            else:
+                raise ValueError(
+                    "This cell does not come from either the top, left or diagonal."
+                )
+        # here either i=0 or j=0
+        assert i == 0
+        return j, alQ, alT
+
 
 class LocalDTW(LocalMatrix):
     #### DTW ####
+    def from_left(self, i, j):
+        return (
+            self.matrix[i][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1])
+            == self.matrix[i][j]
+        )
+
+    def from_top(self, i, j):
+        return (
+            self.matrix[i - 1][j] + self.dist(self.Q[i - 1], self.T[j - 1])
+            == self.matrix[i][j]
+        )
+
     def fill(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
         for i in range(1, len(self.Q) + 1):
@@ -229,6 +288,12 @@ class LocalDTW(LocalMatrix):
 
 class LocalED(LocalMatrix):
     #### Edit distance (Needleman & Wunsch) ####
+    def from_left(self, i, j):
+        return self.matrix[i][j - 1] + self.gap == self.matrix[i][j]
+
+    def from_top(self, i, j):
+        return self.matrix[i - 1][j] + self.gap == self.matrix[i][j]
+
     def fill(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
         for i in range(1, len(self.Q) + 1):
@@ -249,12 +314,25 @@ def main(Q, T):
     print("******** Dynamic Time Warp **********")
     print(f"{ldtw}")
 
+    pos = 7
+    origin, alQ, alT = ldtw.trace_back(pos)
+    print(
+        f"Alignement (cost {ldtw.get_last_value()}) of Q ending at {pos} in T starts at {origin} in T."
+    )
+    print(alQ)
+    print(alT)
+
     led = LocalED(Q, T)
     led.fill()
     print("******** Edit distance **********")
     print(f"{led}")
-
-    ldtw.check_frame_block_property()
+    pos = 7
+    origin, alQ, alT = led.trace_back(pos)
+    print(
+        f"Alignement (cost {led.get_last_value()}) of Q ending at {pos} in T starts at {origin} in T."
+    )
+    print(alQ)
+    print(alT)
 
 
 if __name__ == "__main__":
