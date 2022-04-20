@@ -16,34 +16,18 @@ class Constant:
 class Read:
     """ stores all information needed about a read """
 
-    def __init__(
-        self,
-        sequence,
-        fastq_text="",
-        quality="",
-        sam_id=-1,
-        sam_alignement=0,
-        original_pos=-1,
-        original_len=-1,
-    ):
+    def __init__(self, fastq_text, sequence, quality, sam_id, sam_alignement):
         self.sequence = sequence
         self.quality = quality
-        if fastq_text != "":
-            info = fastq_text[1:].split(" ")
-            self.id = info[0]
-            assert self.id == sam_id
-            self.strand = info[1].split(",")[1]
-            self.position = int(info[1].split(",")[2].split("-")[0])
-            self.length = int(info[2].split("=")[-1])
-            self.error_free_length = int(info[3].split("=")[-1])
-            self.read_identity = info[4].split("=")[-1]
-        else:
-            self.length = len(self.sequence) - 1
-            self.strand = "+strand"
-            self.position = original_pos
-            self.error_free_length = original_len
-            self.read_identity = "?%"
+        info = fastq_text[1:].split(" ")
+        self.id = info[0]
+        assert self.id == sam_id
+        self.strand = info[1].split(",")[1]
+        self.position = int(info[1].split(",")[2].split("-")[0])
+        self.length = int(info[2].split("=")[-1])
         assert self.length == len(self.sequence) - 1
+        self.error_free_length = int(info[3].split("=")[-1])
+        self.read_identity = info[4].split("=")[-1]
         self.sam_alignement = sam_alignement
 
     def __str__(self):
@@ -76,13 +60,7 @@ def parse_input(genome_file, read_fastq_file, read_sam_file):
         optional = fastq_R.readline()
         assert optional[0] == "+"
         qualities = fastq_R.readline()
-        R = Read(
-            seq,
-            fastq_text=text,
-            quality=qualities,
-            sam_id=read.query_name,
-            sam_alignement=read.reference_start,
-        )
+        R = Read(text, seq, qualities, read.query_name, read.reference_start)
         if R.sam_alignement == -1:
             nb_read_not_al += 1
         list_R.append(R)
@@ -188,10 +166,7 @@ class DynamicMatrix:
 
     def initGlobal_DTW(self):
         """ initializes first line and first columns for a DTW"""
-        for i in range(1, len(self.matrix)):
-            self.matrix[i][0] = self.matrix[i - 1][0] + self.score(S[0], self.T[j - 1])
-        for j in range(1, len(self.matrix[0])):
-            self.matrix[0][j] = self.matrix[0][j - 1] + self.score(S[i - 1], self.T[0])
+        self.initGlobal_NW()
 
     def fill_DTW(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
@@ -349,8 +324,8 @@ def demo():
     print(f"%Id = {pcId:.2f}")
 
 
-def print_list_alignements(name, original_al, closest_al, R, G):
-    print(f"G={G}")
+def print_list_alignements(name, original_al, closest_al, R):
+    assert len(L) > 0  # There must be at least the original alignment
     print(f"R={R} \n")
     for al in closest_al[name]:
         print(al, "\n")
@@ -394,8 +369,9 @@ def evaluate_all(G, read, k, N):
         print(
             f"Number of length of subsequence computed = {nb_length_computed} / {2*k+1}"
         )
-        nb_length_computed += 1
         for pos in range(0, len(G) - l):
+            if pos % 100 == 0:
+                print(f"Position {pos} / {len(G)-l}")
             S = G[pos : pos + l]
             # Needleman and Wunsch
             dm_NW = DynamicMatrix(S, R, cost.match, cost.mismatch, cost.gap)
@@ -436,25 +412,23 @@ def evaluate_all(G, read, k, N):
                 N,
             )
 
-    print("\n******** Needleman Wunsch **********")
-    print_list_alignements("NW", original_al, closest_al, R, G)
-    print("\n******** Dynamic Time Warp **********")
-    print_list_alignements("DTW", original_al, closest_al, R, G)
-    print("\n******** Homo edit **********")
-    print_list_alignements("HE", original_al, closest_al, R, G)
+    print("******** Needleman Wunsch **********")
+    print_list_alignements("NW", original_al, closest_al, R)
+    print("******** Dynamic Time Warp **********")
+    print_list_alignements("DTW", original_al, closest_al, R)
+    print("******** Homo edit **********")
+    print_list_alignements("HE", original_al, closest_al, R)
 
 
 def main():
     print("******** Parsing input **********")
-    # G, list_read = parse_input(
-    #    "data/ecoli_10kb.fa", "data/reads_coli.fastq", "data/align_reads_coli.sam"
-    # )
-    G = "AAAACCTGGTAATGCTGATTAGCCGCACCGTTTTTACCCGTACGCGGACCTGTATGATGATTTCACCAAGTGCTGACGGGTTGATACCCTGTTGAT"  # genome
-    R = Read("CCGCCCCACCGTTTTTAAAACCCGT", original_pos=23, original_len=14)
-    k = 15  # the length threshold on the subsequence we consider
-    N = 5  # the maximal distance to a subsequence
+    G, list_read = parse_input(
+        "data/ecoli_10kb.fa", "data/reads_coli.fastq", "data/align_reads_coli.sam"
+    )
+    k = 2  # the length threshold on the subsequence we consider
+    N = 10  # the maximal distance to a subsequence
 
-    list_R = [R]
+    list_R = list_read[1:2]
     for R in list_R:
         evaluate_all(G, R, k, N)
 
