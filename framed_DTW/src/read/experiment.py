@@ -31,14 +31,29 @@ def compute_origin_min_position(localM, G, R):
     return origin
 
 
-def local_alignement_ED_vs_DTW():
+def ecoli():
     print("******** Parsing input **********")
     data_prefix = "../data/badread/"
-    G, list_read_aligned, list_read_not_aligned = parse_input(
+    return parse_input(
         data_prefix + "ecoli_10kb.fa",
         data_prefix + "reads_coli.fastq",
         data_prefix + "align_reads_coli.sam",
     )
+
+
+def human_nanosim():
+    print("******** Parsing input **********")
+    data_prefix = "../data/nanosim/"
+    return parse_input(
+        data_prefix + "short_NC_000001_11.fasta",
+        data_prefix + "short_simulated_aligned_reads.fastq",
+        data_prefix + "short_simulated_aligned_reads.sam",
+        simulator="nanosim",
+    )
+
+
+def local_alignement_ED_vs_DTW():
+    G, list_read_aligned, list_read_not_aligned = ecoli()
 
     list_R = list_read_aligned[0:10]
     nb_small = 10  # Number of values to trace back
@@ -58,15 +73,9 @@ def local_alignement_ED_vs_DTW():
 
 
 def stats_local_alignement_ED_vs_DTW():
-    print("******** Parsing input **********")
-    data_prefix = "../data/badread/"
-    G, list_read_aligned, list_read_not_aligned = parse_input(
-        data_prefix + "ecoli_10kb.fa",
-        data_prefix + "reads_coli.fastq",
-        data_prefix + "align_reads_coli.sam",
-    )
+    G, list_read_aligned, list_read_not_aligned = human_nanosim()
 
-    list_R = list_read_aligned + list_read_not_aligned
+    list_R = list_read_aligned
     nb_small = 10  # Number of values to trace back
     nb_out_of_range_read = 0
     avg_dist_origin_sam_alignement = 0
@@ -88,10 +97,9 @@ def stats_local_alignement_ED_vs_DTW():
     avg_dist_origin_sam_alignement /= len(list_R) - nb_out_of_range_read
     avg_dist_dtw /= len(list_R) - nb_out_of_range_read
     avg_dist_ed /= len(list_R) - nb_out_of_range_read
-    print(f"Genome size: {len(G)}")
-    # print(
-    #    f"Average distance between origin and sam alignement found {round(avg_dist_origin_sam_alignement,2)}"
-    # )
+    print(
+        f"Average distance between origin and sam alignement found {round(avg_dist_origin_sam_alignement,2)}"
+    )
     print(
         f"Average distance between origin and min DTW alignement {round(avg_dist_dtw,2)}"
     )
