@@ -3,70 +3,14 @@
 # compatible python3
 
 import bisect
-import pysam
 import sys
+from read.read import Read, parse_input
 
 
 class Constant:
     match = 0
     mismatch = 1
     gap = 1
-
-
-class Read:
-    """ stores all information needed about a read """
-
-    def __init__(self, fastq_text, sequence, quality, sam_id, sam_alignement):
-        self.sequence = sequence
-        self.quality = quality
-        info = fastq_text[1:].split(" ")
-        self.id = info[0]
-        assert self.id == sam_id
-        self.strand = info[1].split(",")[1]
-        self.position = int(info[1].split(",")[2].split("-")[0])
-        self.length = int(info[2].split("=")[-1])
-        assert self.length == len(self.sequence) - 1
-        self.error_free_length = int(info[3].split("=")[-1])
-        self.read_identity = info[4].split("=")[-1]
-        self.sam_alignement = sam_alignement
-
-    def __str__(self):
-        res = f"Read Id = {self.id}"
-        return res
-
-    def detail_str(self):
-        res = f"Read Id = {self.id}"
-        res += f"\nStrand = {self.strand}, Position={self.position}"
-        res += f"\nLength = {self.length}, Error-free_length={self.error_free_length}"
-        res += f", Read identity = {self.read_identity}"
-        res += f"\nSequence = {self.sequence}"
-        return res
-
-
-def parse_input(genome_file, read_fastq_file, read_sam_file):
-    file_G = open(genome_file, "r")
-    G = file_G.readlines()[1]
-    file_G.close()
-    fastq_R = open(read_fastq_file, "r")
-    sam_R = pysam.AlignmentFile(read_sam_file, "r")
-    list_R = []
-    nb_read_not_al = 0
-    nb_read = 0
-    for read in sam_R.fetch():
-        nb_read += 1
-        text = fastq_R.readline()
-        assert text[0] == "@"
-        seq = fastq_R.readline()
-        optional = fastq_R.readline()
-        assert optional[0] == "+"
-        qualities = fastq_R.readline()
-        R = Read(text, seq, qualities, read.query_name, read.reference_start)
-        if R.sam_alignement == -1:
-            nb_read_not_al += 1
-        list_R.append(R)
-    print(f"Number of read not alligned in the sam file = {nb_read_not_al}")
-    print(f"Total number of read = {nb_read}")
-    return G, list_R
 
 
 class Alignement:
@@ -426,18 +370,19 @@ def evaluate_all(G, read, k, N):
 def main():
     print("******** Parsing input **********")
     data_prefix = "../data/badread/"
-    G, list_read = parse_input(
+    G, list_read_aligned, list_read_not_aligned = parse_input(
         data_prefix + "ecoli_10kb.fa",
         data_prefix + "reads_coli.fastq",
         data_prefix + "align_reads_coli.sam",
     )
-    k = 2  # the length threshold on the subsequence we consider
+    k = 5  # the length threshold on the subsequence we consider
     N = 10  # the maximal distance to a subsequence
 
-    list_R = list_read[1:2]
+    list_R = list_read_aligned[1:2]
+    print(list_R)
     for R in list_R:
         evaluate_all(G, R, k, N)
 
 
 if __name__ == "__main__":
-    demo()
+    main()
