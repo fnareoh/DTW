@@ -58,7 +58,7 @@ def stats_local_alignement_ED_vs_DTW(
     G, list_read_aligned, list_read_not_aligned, name_file
 ):
 
-    output_file = open(name_file + "_aligned.csv", "w")
+    output_file = open(name_file + "_score.csv", "w")
     csv_output = csv.writer(output_file)
     csv_output.writerow(["read", "identity percentage", "length", "min DTW", "min ED"])
     list_R = list_read_aligned
@@ -89,9 +89,7 @@ def stats_local_alignement_ED_vs_DTW(
             start_ed, _, _ = led_rev_comp.compute_origin_min_position()
 
         if hasattr(R, "read_identity"):
-            csv_output.writerow(
-                [R.id, R.read_identity, len(R.sequence), score_dtw, score_ed]
-            )
+            csv_output.writerow([R.id, R.read_identity, R.length, score_dtw, score_ed])
 
         avg_dist_origin_sam_alignement += abs(R.position - R.sam_alignement)
         avg_dist_dtw += abs(R.position - start_dtw)
@@ -105,7 +103,6 @@ def stats_local_alignement_ED_vs_DTW(
     avg_dist_origin_sam_alignement /= nb_read
     avg_dist_dtw /= nb_read
     avg_dist_ed /= nb_read
-    print(f"Number of read correctly matched {nb_read}")
     print(
         f"Average distance between origin and sam alignement found {round(avg_dist_origin_sam_alignement,2)}"
     )
@@ -126,8 +123,7 @@ def main():
     data_prefix = f"../data/{simulator}/"
     G, list_read_aligned, list_read_not_aligned = parse_input(
         data_prefix + genome,
-        data_prefix + f"{read_pref}.fastq",
-        data_prefix + f"{read_pref}.sam",
+        data_prefix + read_pref,
         simulator,
     )
     if len(argv) == 5:

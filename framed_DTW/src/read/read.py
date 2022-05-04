@@ -1,4 +1,5 @@
 import pysam
+from collections import defaultdict
 
 
 class Read_Badread:
@@ -42,7 +43,9 @@ class Read_Badread:
 
 
 class Read_Nanosim:
-    def __init__(self, fastq_text, sequence, quality, sam_id, sam_alignement):
+    def __init__(
+        self, fastq_text, sequence, quality, sam_id, sam_alignement, error_length
+    ):
         self.sequence = "".join(sequence.split())
         self.quality = quality
         info = fastq_text[1:].split("_")
@@ -53,6 +56,7 @@ class Read_Nanosim:
         self.middle = int(info[-2])
         self.tail = int(info[-1])
         self.length = len(self.sequence)
+        self.read_identity = float(100 * (self.length - error_length) / self.length)
         self.sam_alignement = sam_alignement
         assert self.id == sam_id
         assert self.length == len(self.sequence)
@@ -65,7 +69,7 @@ class Read_Nanosim:
         return res
 
 
-def parse_input(genome_file, read_fastq_file, read_sam_file, simulator="badread"):
+def parse_input(genome_file, read_pref, simulator="badread"):
     """
     Takes as input a fasta file for the genome, a fastq file and a sam file
     for the reads and output the genome (a string) G and a list of Read objects.
@@ -73,12 +77,20 @@ def parse_input(genome_file, read_fastq_file, read_sam_file, simulator="badread"
     file_G = open(genome_file, "r")
     G = "".join(["".join(l.split()) for l in file_G.readlines()[1:]])
     file_G.close()
-    fastq_R = open(read_fastq_file, "r")
-    sam_R = pysam.AlignmentFile(read_sam_file, "r")
+    fastq_R = open(read_pref + ".fastq", "r")
+    sam_R = pysam.AlignmentFile(read_pref + ".sam", "r")
     list_R_al = []
     list_R_not_al = []
     nb_read_not_al = 0
     nb_read = 0
+    if simulator == "nanosim":
+        error_file = open(f"{read_pref}.error_length")
+        error_file.readline()
+        err_length_dict = defaultdict(int)
+        for line in error_file:
+            seq_name, error_length = line.split(",")
+            err_length_dict[seq_name] = int(error_length)
+        error_file.close()
     for read in sam_R.fetch():
         nb_read += 1
         text = fastq_R.readline()
@@ -92,8 +104,14 @@ def parse_input(genome_file, read_fastq_file, read_sam_file, simulator="badread"
                 text, seq, qualities, read.query_name, read.reference_start, G
             )
         elif simulator == "nanosim":
+            id = text[1:-1]
             R = Read_Nanosim(
-                text, seq, qualities, read.query_name, read.reference_start
+                text,
+                seq,
+                qualities,
+                read.query_name,
+                read.reference_start,
+                int(err_length_dict[id]),
             )
         else:
             raise Error("Unkwoned simulator!")
