@@ -70,6 +70,10 @@ class LocalMatrix:
             if self.Q[i] != self.Q[i - 1]:
                 self.end_horizontal_blocs.append(i)
         self.end_horizontal_blocs.append(len(self.Q))
+        self.fill()
+
+    def fill():
+        return self.matrix[len(self.Q)][len(self.T)]
 
     def __str__(self):
         """ string the matrix"""
@@ -184,6 +188,22 @@ class LocalMatrix:
         # here either i=0 or j=0
         assert i == 0
         return j, alQ, alT
+
+    def min_last_row_val_index(self):
+        m = min(self.matrix[len(self.Q)])
+        return m, self.matrix[len(self.Q)].index(m)
+
+    def index_min_last_row(self):
+        return self.matrix[len(self.Q)].index(min(self.matrix[len(self.Q)]))
+
+    def k_smallest(self, k):
+        return sorted(
+            range(len(self.matrix[len(self.Q)])),
+            key=lambda sub: self.matrix[len(self.Q)][sub],
+        )[:k]
+
+    def compute_origin_min_position(self):
+        return self.trace_back(self.index_min_last_row())
 
 
 class LocalDTW(LocalMatrix):
