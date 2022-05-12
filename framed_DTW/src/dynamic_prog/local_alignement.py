@@ -332,12 +332,10 @@ def main(Q, T):
     ldtw = LocalDTW(Q, T)
     ldtw.fill()
     print("******** Dynamic Time Warp **********")
-    print(f"{ldtw}")
-
-    pos = 7
-    origin, alQ, alT = ldtw.trace_back(pos)
+    min_dtw, pos_dtw = ldtw.min_last_row_val_index()
+    origin, alQ, alT = ldtw.trace_back(pos_dtw)
     print(
-        f"Alignement (cost {ldtw.get_last_value()}) of Q ending at {pos} in T starts at {origin} in T."
+        f"Alignement (cost {min_dtw}) of Q ending at {pos_dtw} in T starts at {origin} in T."
     )
     print(alQ)
     print(alT)
@@ -345,11 +343,10 @@ def main(Q, T):
     led = LocalED(Q, T)
     led.fill()
     print("******** Edit distance **********")
-    print(f"{led}")
-    pos = 7
-    origin, alQ, alT = led.trace_back(pos)
+    min_ed, pos_ed = led.min_last_row_val_index()
+    origin, alQ, alT = led.trace_back(pos_ed)
     print(
-        f"Alignement (cost {led.get_last_value()}) of Q ending at {pos} in T starts at {origin} in T."
+        f"Alignement (cost {min_ed}) of Q ending at {pos_ed} in T starts at {origin} in T."
     )
     print(alQ)
     print(alT)

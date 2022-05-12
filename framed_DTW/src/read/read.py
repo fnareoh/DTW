@@ -55,6 +55,10 @@ class Read_Nanosim:
         self.head = int(info[-3])
         self.middle = int(info[-2])
         self.tail = int(info[-1])
+        if self.strand == "F":
+            self.sequence = self.sequence[self.head : len(self.sequence) - self.tail]
+        else:
+            self.sequence = self.sequence[self.tail : len(self.sequence) - self.head]
         self.length = len(self.sequence)
         self.read_identity = float(100 * (self.length - error_length) / self.length)
         self.sam_alignement = sam_alignement

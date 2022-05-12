@@ -4,19 +4,21 @@ import csv
 from sys import argv
 
 
-def evaluate(localM, G, R):
+def evaluate(localM):
     pos = localM.index_min_last_row()
     origin, alQ, alT = localM.trace_back(pos)
     print(
-        f"Alignement (cost {localM.matrix[len(R.sequence)][pos]}) of Q ending at {pos} in T starts at {origin} in T."
+        f"Alignement (cost {localM.matrix[-1][pos]}) of Q ending at {pos} in T starts at {origin} in T."
     )
+    # print(alQ)
+    # print(alT)
 
 
-def compute_matrices(R, G):
-    ldtw = LocalDTW(R.sequence, G)
-    ldtw_rev_comp = LocalDTW(reverse(complement(R.sequence)), G)
-    led = LocalED(R.sequence, G)
-    led_rev_comp = LocalED(reverse(complement(R.sequence)), G)
+def compute_matrices(read, G):
+    ldtw = LocalDTW(read, G)
+    ldtw_rev_comp = LocalDTW(reverse(complement(read)), G)
+    led = LocalED(read, G)
+    led_rev_comp = LocalED(reverse(complement(read)), G)
     return ldtw, ldtw_rev_comp, led, led_rev_comp
 
 
@@ -33,14 +35,14 @@ def reverse(S):
 def print_details(R, G, ldtw, ldtw_rev_comp, led, led_rev_comp):
     print("******** Dynamic Time Warp **********")
     print("------------ Forward ----------------")
-    evaluate(ldtw, G, R)
+    evaluate(ldtw)
     print("------- Reverse complement ----------")
-    evaluate(ldtw_rev_comp, G, R)
+    evaluate(ldtw_rev_comp)
     print("******** Edit distance **********")
     print("------------ Forward ----------------")
-    evaluate(led, G, R)
+    evaluate(led)
     print("------- Reverse complement ----------")
-    evaluate(led_rev_comp, G, R)
+    evaluate(led_rev_comp)
 
 
 def local_alignement_ED_vs_DTW():
@@ -58,14 +60,15 @@ def stats_local_alignement_ED_vs_DTW(
     G, list_read_aligned, list_read_not_aligned, name_file
 ):
 
-    output_file = open(name_file + "_score.csv", "w")
+    output_file = open(name_file + "_score_trimmed.csv", "w")
     csv_output = csv.writer(output_file)
     csv_output.writerow(["read", "identity percentage", "length", "min DTW", "min ED"])
-    list_R = list_read_aligned
+    list_R = list_read_aligned  # + list_read_not_aligned
     nb_small = 5  # Number of values to trace back
     nb_out_of_range_read = 0
     avg_dist_origin_sam_alignement = 0
     avg_dist_dtw = 0
+    avg_score_ed = 0
     avg_dist_ed = 0
     nb_read = 0
     for R in list_R:
@@ -73,7 +76,7 @@ def stats_local_alignement_ED_vs_DTW(
             print(f"{nb_read}/{len(list_R)}")
         nb_read += 1
 
-        ldtw, ldtw_rev_comp, led, led_rev_comp = compute_matrices(R, G)
+        ldtw, ldtw_rev_comp, led, led_rev_comp = compute_matrices(R.sequence, G)
         score_dtw, pos_dtw = ldtw.min_last_row_val_index()
         start_dtw, _, _ = ldtw.compute_origin_min_position()
         score_dtw_rev_comp, pos_dtw_rev_comp = ldtw_rev_comp.min_last_row_val_index()
@@ -94,6 +97,7 @@ def stats_local_alignement_ED_vs_DTW(
         avg_dist_origin_sam_alignement += abs(R.position - R.sam_alignement)
         avg_dist_dtw += abs(R.position - start_dtw)
         avg_dist_ed += abs(R.position - start_ed)
+        avg_score_ed += score_ed
         if abs(R.position - start_dtw) > 10 or abs(R.position - start_ed) > 10:
             print("******** Read information **********")
             print(R.detail_str())
@@ -112,6 +116,8 @@ def stats_local_alignement_ED_vs_DTW(
     print(
         f"Average distance between origin and min ED alignement {round(avg_dist_ed,2)}"
     )
+    avg_score_ed /= nb_read
+    print(f"Average Edit distance score of a mapped read: {avg_score_ed}")
     output_file.close()
 
 
@@ -140,7 +146,7 @@ def print_read(id, read_list, G):
             print("******** Read information **********")
             print(R.detail_str())
             print(R.sequence)
-            ldtw, ldtw_rev_comp, led, led_rev_comp = compute_matrices(R, G)
+            ldtw, ldtw_rev_comp, led, led_rev_comp = compute_matrices(R.sequence, G)
             print_details(R, G, ldtw, ldtw_rev_comp, led, led_rev_comp)
 
 
