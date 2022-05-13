@@ -114,14 +114,14 @@ def generate_read(G, N, err):
         read_file.write(f"@{id}\n{read}\n+{id}\n{qual}\n")
         print(id)
         score_dtw, score_ed = evaluate_dtw_ed(read, G, r, qual)
-        csv_output.writerow([id, nb_ids, nb_homopoly, score_dtw, score_dtw])
+        csv_output.writerow([id, nb_ids, nb_homopoly, score_dtw, score_ed])
     read_file.close()
     output_file.close()
 
 
 def main():
-    err_inser_del_sub_list = [round(0.06 + 0.02 * i) for i in range(6)]
-    err_homopoly_list = [round(0.05 + 0.05 * i) for i in range(6)]
+    err_inser_del_sub_list = [round(0.06 + 0.02 * i, 2) for i in range(6)]
+    err_homopoly_list = [round(0.05 + 0.05 * i, 2) for i in range(6)]
     N = int(argv[1])
     G = load_genome()
     for err_ed in err_inser_del_sub_list:
