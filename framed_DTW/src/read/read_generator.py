@@ -1,21 +1,20 @@
 from experiment import compute_matrices, print_details, reverse, complement
 from sys import argv
-from random import randint, random, choice
+import argparse
+from random import randint, random, choice, choices
 import csv
 
 
 class Error_rate:
-    def __init__(self, ed, hom):
+    def __init__(self, ed, hom, ids):
         self.inser_del_sub = ed
+        self.inser = ids[0]
+        self.dele = ids[1]
+        self.sub = ids[2]
         self.homopoly = hom
 
-
-def load_genome():
-    genome_file = argv[2]
-    file_G = open(genome_file, "r")
-    G = "".join(["".join(l.split()) for l in file_G.readlines()[1:]])
-    file_G.close()
-    return G
+    def IDS_distrib(self):
+        return f"I:{round(self.inser,2)},D:{round(self.dele,2)},S:{round(self.sub,2)}"
 
 
 def evaluate_dtw_ed(R, G, pos, qual):
@@ -34,7 +33,7 @@ def evaluate_dtw_ed(R, G, pos, qual):
         score_ed, pos_ed = score_ed_rev_comp, pos_ed_rev_comp
         start_ed, _, _ = led_rev_comp.compute_origin_min_position()
 
-    if abs(pos - start_dtw) > 10 or abs(pos - start_ed) > 10:
+    if abs(pos - start_dtw) > 2 or abs(pos - start_ed) > 2:
         print("************* Read **************")
         print(f"starting position: {pos}")
         print(R)
@@ -53,7 +52,11 @@ def add_err(S, err):
     nb_homopoly = 0
     for c in S:
         if random() < err.inser_del_sub:
-            err_type = choice(["substitution", "insertion", "deletion"])
+            err_type = choices(
+                ["substitution", "insertion", "deletion"],
+                weights=[err.sub, err.inser, err.dele],
+                k=1,
+            )[0]
             nb_IDS += 1
             if err_type == "substitution":
                 c = choice([x for x in nucleotides if x != c])
@@ -77,13 +80,10 @@ def add_err(S, err):
     return "".join(list_read), "".join(list_qual), nb_IDS, nb_homopoly
 
 
-def generate_read(G, N, err):
-    read_length = 500
+def generate_read(G, N, read_length, err):
     prob_rev_complement = 0.5
-    genome_name = argv[2].split("/")[-1].split(".")[0]
-    output_file_name = (
-        f"results/{genome_name}_N_{N}_IDS_{err.inser_del_sub}_H_{err.homopoly}"
-    )
+    genome_name = argv[1].split("/")[-1].split(".")[0]
+    output_file_name = f"results/{genome_name}_N_{N}_IDS_{err.inser_del_sub}_H_{err.homopoly}_IDS_distrib_{err.IDS_distrib()}"
     read_file = open(output_file_name + ".fastq", "w")
     output_file = open(output_file_name + ".csv", "w")
     csv_output = csv.writer(output_file)
@@ -97,6 +97,7 @@ def generate_read(G, N, err):
             err.inser_del_sub,
             "proba Homopolymer extension",
             err.homopoly,
+            err.IDS_distrib(),
         ]
     )
     csv_output.writerow(["read_id", "nb_IDS", "nb_H", "min DTW", "min ED"])
@@ -109,7 +110,8 @@ def generate_read(G, N, err):
         id = (
             f"read_nb_{i}_pos_{r}_length_{read_length}_"
             + f"homopoly_err_{err.homopoly}_err_inser_del_sub_{err.inser_del_sub}_"
-            + f"nb_H_{nb_homopoly}_nb_IDS_{nb_ids}"
+            + f"nb_H_{nb_homopoly}_nb_IDS_{nb_ids}_"
+            + f"IDS_distrib_{err.IDS_distrib()}"
         )
         read_file.write(f"@{id}\n{read}\n+{id}\n{qual}\n")
         print(id)
@@ -119,15 +121,48 @@ def generate_read(G, N, err):
     output_file.close()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("genome_file", help="Genome file", type=str)
+
+    # Optional arguments
+    parser.add_argument(
+        "-N", "--N", help="Number of read per set of parameters", type=int, default=10
+    )
+    parser.add_argument(
+        "-RL", "--read_length", help="Read length", type=int, default=500
+    )
+    parser.add_argument(
+        "-IDS",
+        nargs=3,
+        metavar=("I", "D", "S"),
+        help="Insertion Deletion Substitution Probability",
+        type=float,
+        default=(1 / 3, 1 / 3, 1 / 3),
+    )
+
+    args = parser.parse_args()
+
+    return args.genome_file, args.N, args.read_length, args.IDS
+
+
+def load_genome(genome_file):
+    file_G = open(genome_file, "r")
+    G = "".join(["".join(l.split()) for l in file_G.readlines()[1:]])
+    file_G.close()
+    return G
+
+
 def main():
-    err_inser_del_sub_list = [round(0.06 + 0.02 * i, 2) for i in range(6)]
-    err_homopoly_list = [round(0.05 + 0.05 * i, 2) for i in range(6)]
-    N = int(argv[1])
-    G = load_genome()
+    err_inser_del_sub_list = [round(0.01 * i, 2) for i in range(11)]
+    # err_homopoly_list = [round(0.05 + 0.05 * i, 2) for i in range(6)]
+    err_homopoly_list = [0.2]
+    genome_file, N, read_length, ids = parse_args()
+    G = load_genome(genome_file)
     for err_ed in err_inser_del_sub_list:
         for err_hom in err_homopoly_list:
-            err = Error_rate(err_ed, err_hom)
-            generate_read(G, N, err)
+            err = Error_rate(err_ed, err_hom, ids)
+            generate_read(G, N, read_length, err)
 
 
 if __name__ == "__main__":
