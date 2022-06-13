@@ -4,7 +4,6 @@
 
 import bisect
 import sys
-from read.read import Read, parse_input
 
 
 class Constant:
@@ -365,24 +364,3 @@ def evaluate_all(G, read, k, N):
     print_list_alignements("DTW", original_al, closest_al, R)
     print("******** Homo edit **********")
     print_list_alignements("HE", original_al, closest_al, R)
-
-
-def main():
-    print("******** Parsing input **********")
-    data_prefix = "../data/badread/"
-    G, list_read_aligned, list_read_not_aligned = parse_input(
-        data_prefix + "ecoli_10kb.fa",
-        data_prefix + "reads_coli.fastq",
-        data_prefix + "align_reads_coli.sam",
-    )
-    k = 5  # the length threshold on the subsequence we consider
-    N = 10  # the maximal distance to a subsequence
-
-    list_R = list_read_aligned[1:2]
-    print(list_R)
-    for R in list_R:
-        evaluate_all(G, R, k, N)
-
-
-if __name__ == "__main__":
-    main()
