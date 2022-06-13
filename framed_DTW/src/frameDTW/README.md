@@ -1,6 +1,6 @@
 
 
-# Computes the Dynamic Time Warping distances for every alignment of a pattern P and and a text T in O(#runP x #runT x k) time
+# Computes the Dynamic Time Warping distances for every alignment of a pattern P and and a text T in O(#runP × #runT × k) time
 
 
 
