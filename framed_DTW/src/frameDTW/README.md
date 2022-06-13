@@ -1,6 +1,6 @@
 
 
-# Computes a Dynamic Time Warp distance between two sequences Q and T in O(#runQ x #runT x k) time
+# Computes a Dynamic Time Warping distance between two sequences P and T in O(#runP x #runT x k) time
 
 
 
@@ -22,16 +22,16 @@ Computations ideas are sketched here [Note 2 févr. 2022](https://notability.co
 
 ## Usage:
 
-`python python DTW_blocks.py Q T <max_value>`
+`python python DTW_blocks.py P T <max_value>`
 
-Compute the framed DTW of sequences Q versus T. If a max value is fixed, the maximal value in the matrix does not get higher than this value. This saves times
-Output is only for validation : for each block the 4 extreme values are shown as well as *cuts* positions (that is to say where value increase along the frames).
+Compute the framed DTW of sequences P versus T. If a max value is fixed, the maximal value in the matrix does not get higher than this value. This saves times
+Output is only for validation: for each block the 4 extreme values are shown as well as *cuts* positions (that is to say where value increase along the frames).
 
 
 
 ## Validation
 
-`python validation.py nb_tests min_size_Q_T homopol_size_bound`
+`python validation.py nb_tests min_size_P_T homopol_size_bound`
 
 Enables to validate this approach as compared to a fully computed dynamic matrix.
 Compare running times.
@@ -40,7 +40,7 @@ Performs
 
 * nb_tests (eg 10)
 
-* with Q and T sizes at least equal to `min_size_Q_T` (eg 1000)
+* with P and T sizes at least equal to `min_size_P_T` (eg 1000)
 
 * each letter is randomly repeated between 1 and `homopol_size_bound` time (eg 10)
 
