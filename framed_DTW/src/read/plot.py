@@ -43,19 +43,15 @@ def parse_csv(filename):
         assert reader[1][-1] == "min ED" and reader[1][-2] == "min DTW"
         output["ED"] = [int(row[-1]) for row in reader[2:]]
         output["DTW"] = [int(row[-2]) for row in reader[2:]]
-        output["mean_ED"], output["stdev_ED"] = mean(output["ED"]), stdev(output["ED"])
-        output["mean_DTW"], output["stdev_DTW"] = mean(output["DTW"]), stdev(
-            output["DTW"]
-        )
     return output
 
 
 def minus_bio_var(output):
-    output["DTW"] = [
+    output["DTW_less_bio"] = [
         output["DTW"][i] - output["biological_var"][i]
         for i in range(len(output["DTW"]))
     ]
-    output["ED"] = [
+    output["ED_less_bio"] = [
         output["ED"][i] - output["biological_var"][i] for i in range(len(output["DTW"]))
     ]
 
@@ -76,23 +72,32 @@ def parse_args():
     x = []
     y_mean = {"DTW": [], "ED": [], "bio": []}
     y_stdev = {"DTW": [], "ED": [], "bio": []}
-    all_values = {"biological_var": [], "nb_homopoly": [], "ED": [], "DTW": []}
+    all_values = {
+        "biological_var": [],
+        "nb_homopoly": [],
+        "ED": [],
+        "DTW": [],
+        "ED_less_bio": [],
+        "DTW_less_bio": [],
+    }
     for name in glob(
         f"{param['basename']}_ID_{param['ID']}_SNP_{param['SNP']}_H_{param['H']}_seqS_0.001*.csv"
     ):
         output = parse_csv(name)
-        # minus_bio_var(output)  # Deducts the bio distance !
+        minus_bio_var(output)  # Deducts the bio distance !
         x.append(output[param["varying"]])
         all_values["biological_var"] += output["biological_var"]
         all_values["nb_homopoly"] += output["nb_homopoly"]
         all_values["ED"] += output["ED"]
         all_values["DTW"] += output["DTW"]
-        y_mean["DTW"].append(output["mean_DTW"])
-        y_stdev["DTW"].append(output["stdev_DTW"])
-        y_mean["ED"].append(output["mean_ED"])
-        y_stdev["ED"].append(output["stdev_ED"])
-        y_mean["bio"].append(output["mean_bio"])
-        y_stdev["bio"].append(output["stdev_bio"])
+        all_values["ED_less_bio"] += output["ED_less_bio"]
+        all_values["DTW_less_bio"] += output["DTW_less_bio"]
+        y_mean["DTW"].append(mean(output["DTW_less_bio"]))
+        y_stdev["DTW"].append(stdev(output["DTW_less_bio"]))
+        y_mean["ED"].append(mean(output["ED_less_bio"]))
+        y_stdev["ED"].append(stdev(output["ED_less_bio"]))
+        y_mean["bio"].append(mean(output["biological_var"]))
+        y_stdev["bio"].append(stdev(output["biological_var"]))
 
     x, y_mean, y_stdev = sorted(x), reorder(x, y_mean), reorder(x, y_stdev)
     plot_avg_mean_stdev(param, x, y_mean, y_stdev)
@@ -108,7 +113,7 @@ def parse_args():
         f"Average ratio ED/bio_dist: {mean([all_values['ED'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
     )
     print(
-        f"Average ratio ED/bio_dist: {mean([all_values['ED'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
+        f"Stdev ratio ED/bio_dist: {stdev([all_values['ED'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
     )
     x = all_values["nb_homopoly"]
     all_values.pop("biological_var", None)
@@ -145,7 +150,7 @@ def plot_avg_mean_stdev(param, x, y_mean, y_stdev):
         # plt.plot(x, y_mean[k], label=k)
         if k != "bio":
             plt.errorbar(x, y_mean[k], y_stdev[k], label=k, fmt="-o")
-    plt.ylabel("Average (distance - biological variation)")
+    plt.ylabel("Average (distance - biological diversity)")
     plt.xlabel(x_legend[param["varying"]])
     # plt.title(
     #    f"Average distance for fixed {x_legend[param['fixed']]}\n equal to {param[param['fixed']]}, each point averaged over {param['N']} sequences"
