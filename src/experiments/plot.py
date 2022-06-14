@@ -158,6 +158,7 @@ def parse_args():
     all_values.pop("ED_less_bio", None)
     x, y = sorted(x), reorder(x, all_values)
     x, y_mean, y_stdev = avg_same_x(x, y)
+    param["varying"] = "HOM"
     plot_avg_mean_stdev(param, x, y_mean, y_stdev, "_bio_var")
 
 
@@ -185,6 +186,7 @@ def plot_avg_mean_stdev(param, x, y_mean, y_stdev, suffix=""):
     x_legend = {
         "ID": "Probability of IN, DEL or SUB error",
         "H": "Probability of homopolymer extension error",
+        "HOM": "Number of character added by homopolymer extensions",
     }
     for k in y_mean:
         # plt.plot(x, y_mean[k], label=k)
