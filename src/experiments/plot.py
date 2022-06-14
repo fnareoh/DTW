@@ -56,6 +56,39 @@ def minus_bio_var(output):
     ]
 
 
+def avg_same_x(x, y_dict):
+    y_mean, y_stdev = {}, {}
+    current_y = {}
+    unique_x = []
+    for k, y in y_dict.items():
+        y_mean[k] = []
+        y_stdev[k] = []
+        current_y[k] = []
+    last_x = 0
+    for i in range(len(x)):
+        if x[i] == last_x:
+            for k, y in y_dict.items():
+                current_y[k].append(y[i])
+        else:
+            unique_x.append(last_x)
+            for k, y in y_dict.items():
+                if len(current_y[k]) > 0:
+                    y_mean[k].append(mean(current_y[k]))
+                    if len(current_y[k]) > 1:
+                        y_stdev[k].append(stdev(current_y[k]))
+                    else:
+                        y_stdev[k].append(0)
+                current_y[k] = [y[i]]
+            last_x = x[i]
+    unique_x.append(last_x)
+    for k, y in y_dict.items():
+        if len(current_y[k]) > 0:
+            y_mean[k].append(mean(current_y[k]))
+            y_stdev[k].append(stdev(current_y[k]))
+        current_y[k] = []
+    return unique_x, y_mean, y_stdev
+
+
 def parse_args():
     other = {"ID": "H", "H": "ID"}
     param = {"ID": "*", "H": "*", "SNP": 1}
@@ -100,25 +133,32 @@ def parse_args():
         y_stdev["bio"].append(stdev(output["biological_var"]))
 
     x, y_mean, y_stdev = sorted(x), reorder(x, y_mean), reorder(x, y_stdev)
+    print("mean DTW: ", y_mean["DTW"])
+    print("stdev DTW: ", y_stdev["DTW"])
     plot_avg_mean_stdev(param, x, y_mean, y_stdev)
     plt.figure().clear()
 
     print(
-        f"Average ratio DTW/bio_dist: {mean([all_values['DTW'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
+        f"Average ratio DTW/bio_dist: {mean([all_values['DTW'][i]/(all_values['biological_var'][i]) for i in range(len(all_values['DTW'])) if all_values['biological_var'][i] > 0])}"
     )
     print(
-        f"Stdev ratio DTW/bio_dist: {stdev([all_values['DTW'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
+        f"Stdev ratio DTW/bio_dist: {stdev([all_values['DTW'][i]/(all_values['biological_var'][i]) for i in range(len(all_values['DTW'])) if all_values['biological_var'][i] > 0])}"
     )
     print(
-        f"Average ratio ED/bio_dist: {mean([all_values['ED'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
+        f"Average ratio ED/bio_dist: {mean([all_values['ED'][i]/(all_values['biological_var'][i]) for i in range(len(all_values['DTW'])) if all_values['biological_var'][i] > 0])}"
     )
     print(
-        f"Stdev ratio ED/bio_dist: {stdev([all_values['ED'][i]/(all_values['biological_var'][i]+1) for i in range(len(all_values['DTW']))])}"
+        f"Stdev ratio ED/bio_dist: {stdev([all_values['ED'][i]/(all_values['biological_var'][i]) for i in range(len(all_values['DTW'])) if all_values['biological_var'][i] > 0])}"
     )
     x = all_values["nb_homopoly"]
     all_values.pop("biological_var", None)
+    all_values["DTW"] = all_values["DTW_less_bio"]
+    all_values["ED"] = all_values["ED_less_bio"]
+    all_values.pop("DTW_less_bio", None)
+    all_values.pop("ED_less_bio", None)
     x, y = sorted(x), reorder(x, all_values)
-    simple_plot(param, x, y)
+    x, y_mean, y_stdev = avg_same_x(x, y)
+    plot_avg_mean_stdev(param, x, y_mean, y_stdev, "_bio_var")
 
 
 def simple_plot(param, x, y):
@@ -141,7 +181,7 @@ def simple_plot(param, x, y):
     )
 
 
-def plot_avg_mean_stdev(param, x, y_mean, y_stdev):
+def plot_avg_mean_stdev(param, x, y_mean, y_stdev, suffix=""):
     x_legend = {
         "ID": "Probability of IN, DEL or SUB error",
         "H": "Probability of homopolymer extension error",
@@ -157,7 +197,9 @@ def plot_avg_mean_stdev(param, x, y_mean, y_stdev):
     # )
     plt.legend(loc="upper left")
     plt.savefig(
-        f"{param['basename']}_fixed_{param['fixed']}_{param[param['fixed']]}.png"
+        f"{param['basename']}_fixed_{param['fixed']}_{param[param['fixed']]}"
+        + suffix
+        + ".png"
     )
 
 
