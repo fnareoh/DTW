@@ -4,6 +4,9 @@ import argparse
 from random import randint, random, choice, choices
 import csv
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 
 class Error_rate:
     def __init__(self, hom):

@@ -9,6 +9,9 @@
     Computations of a bloc is in O(max(k, height + width)).
 """
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 import sys
 
 from .block import Block

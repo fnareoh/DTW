@@ -3,6 +3,9 @@ This is a dynamic programming computation of DTW + information stored to
 check if the formula on frame is correct.
 """
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 from json.tool import main
 import sys
 

@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # compatible python3
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 import bisect
 import sys
 

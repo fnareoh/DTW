@@ -4,6 +4,9 @@ from sys import argv
 from glob import glob
 import csv
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 
 def reorder(x, y_dict):
     sorted_y = dict()
@@ -185,14 +188,14 @@ def simple_plot(param, x, y):
 def plot_avg_mean_stdev(param, x, y_mean, y_stdev, suffix=""):
     x_legend = {
         "ID": "Probability of IN, DEL or SUB error",
-        "H": "Probability of homopolymer extension error",
+        "H": "$p_{hom}$",
         "HOM": "Number of character added by homopolymer extensions",
     }
     for k in y_mean:
         # plt.plot(x, y_mean[k], label=k)
         if k != "bio":
             plt.errorbar(x, y_mean[k], y_stdev[k], label=k, fmt="-o")
-    plt.ylabel("Average (distance - biological diversity)")
+    plt.ylabel("Average (distance $-$ biological diversity)")
     plt.xlabel(x_legend[param["varying"]])
     # plt.title(
     #    f"Average distance for fixed {x_legend[param['fixed']]}\n equal to {param[param['fixed']]}, each point averaged over {param['N']} sequences"

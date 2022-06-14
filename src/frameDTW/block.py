@@ -6,6 +6,9 @@
     Cf future paper from Gourdel et al.
 """
 
+__author__ = "Garance Gourdel, Pierre Peterlongo"
+__email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
+
 import sys  # for maxsize
 
 
