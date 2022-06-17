@@ -10,8 +10,8 @@ __email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
 
 class Error_rate:
     def __init__(self, hom):
-        self.snp = 1  # percentage of substitution
-        self.indel = 0.05  # percentage of indel
+        self.snp = 1  # percentage of substitutions
+        self.indel = 0.05  # percentage of indels
         self.max_len_ID = 10
         self.seq_S = 0.001
         self.homopoly = hom
@@ -21,7 +21,7 @@ class Error_rate:
 
 
 def evaluate_dtw_ed(R, G, pos, qual, biological_var, bio_qual):
-    """ Alligns the sequence R to G w.r. to ED and DTW """
+    """ Aligns the sequence R to G w.r. to ED and DTW """
     ldtw = LocalDTW(R, G)
     led = LocalED(R, G)
     score_dtw, pos_dtw = ldtw.min_last_row_val_index()
@@ -30,7 +30,7 @@ def evaluate_dtw_ed(R, G, pos, qual, biological_var, bio_qual):
     score_ed, pos_ed = led.min_last_row_val_index()
     start_ed, _, _ = led.compute_origin_min_position()
 
-    if False:  # ugly debuging
+    if False:  
         print("************* Read **************")
         print(f"starting position: {pos}")
         print(f"biological_var: {biological_var}")
@@ -52,7 +52,7 @@ def evaluate_dtw_ed(R, G, pos, qual, biological_var, bio_qual):
 
 
 def add_IDS_err(S, err):
-    """ Adds Insertion Deletion and Substitution meant to represent a biological variant """
+    """ Simulates biological mutations by adding substitutions, deletions, and insertions """
     nucleotides = ["A", "C", "G", "T"]
     list_S = []
     list_qual = []
@@ -86,7 +86,7 @@ def add_IDS_err(S, err):
 
 
 def add_seq_err(S, err):
-    """ Adds Substitution and Homopolymer extension meant to represent sequencing errors """
+    """ Simulates sequencing errors by adding substitutions and homopolymer errors"""
     nucleotides = ["A", "C", "G", "T"]
     list_read = []
     list_qual = []
@@ -111,7 +111,7 @@ def add_seq_err(S, err):
 
 
 def deletion_before(qual):
-    """ Compute for each position i the number of deletion in qual[:i] """
+    """ Compute for each position i the number of deletions in qual[:i] """
     dele_prec = [0] * len(qual)
     nb_del = 0
     for i, c in enumerate(qual):
@@ -229,9 +229,7 @@ def load_genome(genome_file):
 
 
 def main():
-    err_inser_del_sub_list = [round(0.01 * i, 2) for i in range(11)]
     err_homopoly_list = [round(0.05 + 0.05 * i, 2) for i in range(6)]
-    # err_homopoly_list = [0.1]
     genome_file, N, read_length, ids = parse_args()
     Go = load_genome(genome_file)
     err = Error_rate(0)
