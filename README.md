@@ -28,8 +28,8 @@ Experiments for the default parameters should be reproducible with the following
 # Module description
 
 The source code is available in the `src`folder and organized in sub-modules:
-* `dynamic_prog` contains dynamic programming solution to computing global and local alignment between string.
+* `dynamic_prog` contains dynamic programming solutions for computing global and local alignments between strings under Edit distance, Homoedit distace, DTW.
 * `frameDTW` is a work in progress where the goal is to have a O(knm) time computation of the dynamic programming matrix for DTW distances up to k on a text with n runs and a pattern with m runs.
-* `experiments` contains every scripts for the actual experiments on the compared efficiency of DTW local alignment vs ED local alignment. In particular, `read_generator.py` generate the reads and compute their local alignment against the genome, where as `plot.py` uses matplotlib to create graphs visualizing those alignment scores.
+* `experiments` contains all scripts for comparing how edit distance and DTW distance are affected by homopolymer errors. `read_generator.py` generates reads and computes the ED and DTW distances from them to a reference genome, and `plot.py` compares the resulting distances graphically using matplotlib.
 
-The folder test contain a few testing scripts such as `validation.py` which compares the dynamic and frame implementation of local alignment of DTW.
+The folder test contain a few testing scripts such as `validation.py` which compares the dynamic programming and frame implementation of local alignment of DTW.
