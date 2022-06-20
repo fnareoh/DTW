@@ -1,15 +1,10 @@
 
 
-# Computes the Dynamic Time Warping distances for every alignment of a pattern Q and and a text T in O(#runQ × #runT × k) time
+# Computes the Dynamic Time Warping distances for every alignment of a pattern Q and and a text T in O(#runQ × |T| + |Q| × #runT) time
 
 
 
-In the dynamic programming matrix a bloc is defined by a run in Q of lenght height and a run of T of length width. The integer k is a threshold for the DTW distance. The border of a block is computed in O(max(k, height + width)) time.(Garance: shouldn't it be min ?)
-
-Cf Paper: Kuszmaul https://arxiv.org/pdf/1904.09690.pdf
-
-Cf future paper from Gourdel et al.
-
+In the dynamic programming matrix a bloc is defined by a run in Q of lenght height and a run of T of length width. The integer k is a threshold for the DTW distance. The border of a block is computed in O(height + width) time.
 
 ## Usage:
 
