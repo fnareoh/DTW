@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Computes a DTW matrix
-    In the matrix a bloc is defined by a a^height x b^width letters to be compared
-    k bounds the computations. This is a maximal value.
-    Cf Paper: Kuszmaul https://arxiv.org/pdf/1904.09690.pdf
-    Cf future paper from Gourdel et al.
-    Computations of a bloc is in O(max(k, height + width)).
+"""Computes a matrix of DTW distances between a pattern Q and a text T
+    In the matrix a block is defined by a a^height x b^width letters to be compared
+    Only distances <= k must be computed
+    Computations of a block is in O(height + width).
 """
 
 __author__ = "Garance Gourdel, Pierre Peterlongo"
@@ -18,10 +16,8 @@ from .block import Block
 
 
 class DtwByBlocks:
-    """DTW on a matrix
-
-    Explanations: cf https://notability.com/n/M9iqdy50C4dnBZoPSJDaT
-    Performs the DTW matrix of a query Q against a target T in sub O(QxT) time and space.
+    """
+    Computes the DTW matrix for a pattern Q and a text T in O(#runsQ |T| + |Q| #runsT) time and space.
     """
 
     def __init__(self, Q, T, max_value=sys.maxsize):
