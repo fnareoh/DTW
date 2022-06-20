@@ -4,7 +4,7 @@
 
 
 
-In the dynamic programming matrix a block is defined by a run in Q of lenght height and a run of T of length width. The integer k is a threshold for the DTW distance. The border of a block is computed in O(height + width) time.
+In the dynamic programming matrix a block is defined by a run in Q of lenght height and a run of T of length width. The border of a block is computed in O(height + width) time.
 
 ## Usage:
 
