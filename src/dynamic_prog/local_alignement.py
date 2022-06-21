@@ -1,6 +1,6 @@
 """
 This is a dynamic programming computation of DTW + information stored to
-check if the formula on frame is correct.
+check if the formula on borders is correct.
 """
 
 __author__ = "Garance Gourdel, Pierre Peterlongo"
@@ -20,7 +20,7 @@ class LocalMatrix:
     """
     Stores a matrix |Q|x|T| (|Q|+1 lines and |T|+1columns),
     sequences Q and T and the score system (match, mismatch, gap)
-    defines some global alignment functions
+    defines some local alignment functions
     """
 
     def __init__(self, Q, T):
@@ -47,11 +47,6 @@ class LocalMatrix:
             self.matrix[0][j] = 0
         for i in range(1, len(self.Q) + 1):
             self.matrix[i][0] = sys.maxsize
-
-        # self.matrix[i][j]
-        # i : ith line, in S
-        # j : jth column, in T
-        # self.matrix[i+1][j+1] in front of S[i] et T[j]
 
         # Determine block positions:
         # list of vertical frontiers:
@@ -87,7 +82,6 @@ class LocalMatrix:
             else:
                 return "\033[92m"
 
-        # res,normal_color = change_color(normal_color, "")
         res = ""
         width = 4
         vide = " "
@@ -128,13 +122,6 @@ class LocalMatrix:
                 is_green = not is_green
             res += line + "\n"
 
-        # res += f"\n horizontal block frontiers: {self.end_horizontal_blocs}"
-        # res += f"\n vertical block frontiers: {self.end_vertical_blocs}"
-        # for i in range(len(self.end_horizontal_blocs)):
-        #     res += f" {i}"
-        # res += "\n vertical block frontiers:"
-        # for i in range(len(self.end_vertical_blocs)):
-        #     res += f" {i}"
         return res + "\033[00m\n"
 
     def get_last_value(self):
@@ -239,7 +226,7 @@ class LocalDTW(LocalMatrix):
                 )
         return self.matrix[len(self.Q)][len(self.T)]
 
-    def check_frame_block_property(self):
+    def check_border_block_property(self):
         for bi in range(1, len(self.end_horizontal_blocs)):
             for bj in range(1, len(self.end_vertical_blocs)):
                 # positions of the end of the current block
@@ -256,7 +243,7 @@ class LocalDTW(LocalMatrix):
                 tli = self.end_horizontal_blocs[bi - 1]
                 tlj = self.end_vertical_blocs[bj - 1]
 
-                fi = tli + 1  # first line in the bloc
+                fi = tli + 1  # first line in the block
                 fj = tlj + 1  # first line in the column
 
                 h = li - tli  # height of the current block

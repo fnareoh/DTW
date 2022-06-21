@@ -1,9 +1,7 @@
-"""Computes a DTW matrix
-    In the matrix a bloc is defined by a a^height x b^width letters to be compared
-    k bounds the computations. This is a maximal value.
-    Computations of a bloc is in O(max(k, height + width)).
-    Cf Paper: Kuszmaul https://arxiv.org/pdf/1904.09690.pdf
-    Cf future paper from Gourdel et al.
+"""Computes a matrix of DTW distances between a pattern Q and a text T
+    In the matrix a block is defined by a a^height x b^width letters to be compared
+    Only distances <= k must be computed
+    Computations of a block is in O(height + width).
 """
 
 __author__ = "Garance Gourdel, Pierre Peterlongo"
@@ -40,8 +38,8 @@ class Block:
             Vnw (int): value on top left of the block (pos -1, -1)
             Vn (int): value on top of the block (pos -1, 0)
             Vw (int): value on left of the block (pos 0, -1)
-            h_cuts (list<int>): positions were values are increasing on the line on top of the block (outside the block)
-            v_cuts (list<int>): positions were values are increasing on the column on the left of the block (outside the block)
+            h_cuts (list<int>): positions where values are increasing on the line on top of the block (outside the block)
+            v_cuts (list<int>): positions where values are increasing on the column on the left of the block (outside the block)
             max_value (int): optional : maximal value computed in the matrix. Any value higher than max_value is not computed
             line_start (int): optional : indicates the first line of the block in a whole matrix
             line_end (int): optional : indicates the last line of the block in a whole matrix
@@ -67,7 +65,7 @@ class Block:
         self.top_cuts = []
         self.leftmost_cuts = []
         self.rightmost_cuts = []
-        self.__compute_frame__()
+        self.__compute_border__()
 
     def __repr__(self):
         """Returns a string repr of a block
@@ -296,8 +294,8 @@ class Block:
 
         return current_value
 
-    def __compute_frame__(self):
-        """Computes the frame of the block
+    def __compute_border__(self):
+        """Computes the border of the block
         cf https://notability.com/n/M9iqdy50C4dnBZoPSJDaT
 
         tl (int): top left value (pos 0, 0)

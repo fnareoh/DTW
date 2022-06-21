@@ -44,23 +44,23 @@ class DtwByBlocks:
 
         # Determine block positions:
         # list of vertical frontiers:
-        self.end_vertical_blocs = []
+        self.end_vertical_blocks = []
         for i in range(1, len(self.T)):
             if self.T[i] != self.T[i - 1]:
-                self.end_vertical_blocs.append(i - 1)
-        self.end_vertical_blocs.append(len(self.T) - 1)
+                self.end_vertical_blocks.append(i - 1)
+        self.end_vertical_blocks.append(len(self.T) - 1)
 
         # list of horizontal frontiers:
-        self.end_horizontal_blocs = []
+        self.end_horizontal_blocks = []
         for i in range(1, len(self.Q)):
             if self.Q[i] != self.Q[i - 1]:
-                self.end_horizontal_blocs.append(i - 1)
-        self.end_horizontal_blocs.append(len(self.Q) - 1)
+                self.end_horizontal_blocks.append(i - 1)
+        self.end_horizontal_blocks.append(len(self.Q) - 1)
 
         # Future array of blocks:
-        self.block_matrix = [[] for i in range(len(self.end_horizontal_blocs))]
-        for i in range(len(self.end_horizontal_blocs)):
-            self.block_matrix[i] = [None for j in range(len(self.end_vertical_blocs))]
+        self.block_matrix = [[] for i in range(len(self.end_horizontal_blocks))]
+        for i in range(len(self.end_horizontal_blocks)):
+            self.block_matrix[i] = [None for j in range(len(self.end_vertical_blocks))]
 
         # Compute the blocks:
         self.__compute_blocks__()
@@ -74,73 +74,75 @@ class DtwByBlocks:
         res = ""
         res += f"Q (vertical): {self.Q}\n"
         res += f"T (horizontal): {self.T}\n"
-        res += f"end_vertical_blocs: {self.end_vertical_blocs}\n"
-        res += f"end_horizontal_blocs: {self.end_horizontal_blocs}\n"
+        res += f"end_vertical_blocks: {self.end_vertical_blocks}\n"
+        res += f"end_horizontal_blocks: {self.end_horizontal_blocks}\n"
 
         res += f"bottom right value {self.block_matrix[-1][-1].br}\n"
 
-        for h_bloc_id in range(len(self.end_vertical_blocs)):
-            for v_bloc_id in range(len(self.end_horizontal_blocs)):
-                res += f"*** Block {v_bloc_id} {h_bloc_id} ***\n{self.block_matrix[v_bloc_id][h_bloc_id]}\n"
+        for h_block_id in range(len(self.end_vertical_blocks)):
+            for v_block_id in range(len(self.end_horizontal_blocks)):
+                res += f"*** Block {v_block_id} {h_block_id} ***\n{self.block_matrix[v_block_id][h_block_id]}\n"
         return res
 
     def get_br_value(self):
         return self.block_matrix[-1][-1].br
 
     def get_nb_blocks(self):
-        return len(self.end_horizontal_blocs) * len(self.end_vertical_blocs)
+        return len(self.end_horizontal_blocks) * len(self.end_vertical_blocks)
 
     def __compute_blocks__(self):
         """Compute all blocks from a matrix"""
         # We compute blocks from top to bottom
         ## This is really misleading here. 100% of debug was here.
-        ## When we navigate in a line of blocks (h_bloc_id), blocks are delimited by the end of vertical blocks.
-        ## This explain why h_bloc_id is in end_vertical_blocs
+        ## When we navigate in a line of blocks (h_block_id), blocks are delimited by the end of vertical blocks.
+        ## This explain why h_block_id is in end_vertical_blocks
         ## symmetrically explanation for column of blocks
-        for h_bloc_id in range(len(self.end_vertical_blocs)):
-            for v_bloc_id in range(len(self.end_horizontal_blocs)):
+        for h_block_id in range(len(self.end_vertical_blocks)):
+            for v_block_id in range(len(self.end_horizontal_blocks)):
                 # get 3 top values:
-                if v_bloc_id == 0:  # First column blocks
+                if v_block_id == 0:  # First column blocks
                     Vnw = 0
                     Vn = 0
-                    if h_bloc_id == 0:  # first block
+                    if h_block_id == 0:  # first block
                         Vw = sys.maxsize
                     else:
-                        Vw = self.block_matrix[0][h_bloc_id - 1].tr
-                elif h_bloc_id == 0:  # First line blocks:
-                    # case h_bloc_id == 0 already performed
+                        Vw = self.block_matrix[0][h_block_id - 1].tr
+                elif h_block_id == 0:  # First line blocks:
+                    # case h_block_id == 0 already performed
                     Vw = sys.maxsize
                     Vnw = sys.maxsize
-                    Vn = self.block_matrix[v_bloc_id - 1][0].bl
+                    Vn = self.block_matrix[v_block_id - 1][0].bl
                 else:  # any other bloc:
-                    Vn = self.block_matrix[v_bloc_id - 1][h_bloc_id].bl
-                    Vw = self.block_matrix[v_bloc_id][h_bloc_id - 1].tr
-                    Vnw = self.block_matrix[v_bloc_id - 1][h_bloc_id - 1].br
+                    Vn = self.block_matrix[v_block_id - 1][h_block_id].bl
+                    Vw = self.block_matrix[v_block_id][h_block_id - 1].tr
+                    Vnw = self.block_matrix[v_block_id - 1][h_block_id - 1].br
 
-                if v_bloc_id == 0:
+                if v_block_id == 0:
                     line_start = 0
                 else:
-                    line_start = self.end_horizontal_blocs[v_bloc_id - 1] + 1
-                line_end = self.end_horizontal_blocs[v_bloc_id]
-                if h_bloc_id == 0:
+                    line_start = self.end_horizontal_blocks[v_block_id - 1] + 1
+                line_end = self.end_horizontal_blocks[v_block_id]
+                if h_block_id == 0:
                     col_start = 0
                 else:
-                    col_start = self.end_vertical_blocs[h_bloc_id - 1] + 1
-                col_end = self.end_vertical_blocs[h_bloc_id]
+                    col_start = self.end_vertical_blocks[h_block_id - 1] + 1
+                col_end = self.end_vertical_blocks[h_block_id]
                 height = line_end - line_start + 1
                 width = col_end - col_start + 1
 
                 # get previous cuts
-                if v_bloc_id == 0:
+                if v_block_id == 0:
                     h_cuts = []  # we are on the first line, no cut upside
                 else:
-                    h_cuts = self.block_matrix[v_bloc_id - 1][h_bloc_id].bottom_cuts
-                if h_bloc_id == 0:
+                    h_cuts = self.block_matrix[v_block_id - 1][h_block_id].bottom_cuts
+                if h_block_id == 0:
                     v_cuts = [
                         i for i in range(height)
                     ]  # we are on the first column, only cuts on the left.
                 else:
-                    v_cuts = self.block_matrix[v_bloc_id][h_bloc_id - 1].rightmost_cuts
+                    v_cuts = self.block_matrix[v_block_id][
+                        h_block_id - 1
+                    ].rightmost_cuts
 
                 T_letter = self.T[col_end]
                 Q_letter = self.Q[line_end]
@@ -162,7 +164,7 @@ class DtwByBlocks:
                     column_end=col_end,
                 )
 
-                self.block_matrix[v_bloc_id][h_bloc_id] = current_block
+                self.block_matrix[v_block_id][h_block_id] = current_block
 
 
 def main(Q, T, max_value=sys.maxsize):

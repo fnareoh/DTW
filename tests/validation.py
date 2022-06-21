@@ -1,5 +1,5 @@
 from dynamic_prog.local_alignement import LocalDTW
-from frameDTW.DTW_blocks import *
+from BlockDTW.DTW_blocks import *
 from timer import Timer
 from progress_bar import update_progress
 
@@ -44,7 +44,7 @@ def main(nb_tests, size_min, bound_homopol):
         update_progress(1)
     classical_time.print("Durée classique = {} seconds")
 
-    framed_bloc_res = []
+    dtw_block_res = []
     nb_blocks = 0
     with Timer() as block_time:
         for i in range(nb_tests):
@@ -52,7 +52,7 @@ def main(nb_tests, size_min, bound_homopol):
             Q = QT_strings[i][0]
             T = QT_strings[i][1]
             dtw = DtwByBlocks(Q, T)
-            framed_bloc_res.append(dtw.get_br_value())
+            dtw_block_res.append(dtw.get_br_value())
             nb_blocks += dtw.get_nb_blocks()
         update_progress(1)
     block_time.print("Durée with blocks = {} seconds")
@@ -62,8 +62,8 @@ def main(nb_tests, size_min, bound_homopol):
     # Validations
     for i in range(nb_tests):
         assert (
-            classic_res[i] == framed_bloc_res[i]
-        ), f"Test failed with {QT_strings[i][0]} {QT_strings[i][1]}: {classic_res[i]} vs {framed_bloc_res[i]}"
+            classic_res[i] == dtw_block_res[i]
+        ), f"Test failed with {QT_strings[i][0]} {QT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]}"
 
     print(f"We performed {nb_tests} tests, all passed !")
 
