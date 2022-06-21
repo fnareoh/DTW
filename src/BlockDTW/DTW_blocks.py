@@ -93,7 +93,6 @@ class DtwByBlocks:
     def __compute_blocks__(self):
         """Compute all blocks from a matrix"""
         # We compute blocks from top to bottom
-        ## This is really misleading here. 100% of debug was here.
         ## When we navigate in a line of blocks (h_block_id), blocks are delimited by the end of vertical blocks.
         ## This explain why h_block_id is in end_vertical_blocks
         ## symmetrically explanation for column of blocks
