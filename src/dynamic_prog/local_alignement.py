@@ -1,6 +1,5 @@
 """
-This is a dynamic programming computation of DTW + information stored to
-check if the formula on borders is correct.
+This is a dynamic programming computation of pattern matching for DTW. 
 """
 
 __author__ = "Garance Gourdel, Pierre Peterlongo"
@@ -225,75 +224,6 @@ class LocalDTW(LocalMatrix):
                     + self.dist(self.Q[i - 1], self.T[j - 1])
                 )
         return self.matrix[len(self.Q)][len(self.T)]
-
-    def check_border_block_property(self):
-        for bi in range(1, len(self.end_horizontal_blocs)):
-            for bj in range(1, len(self.end_vertical_blocs)):
-                # positions of the end of the current block
-                li = self.end_horizontal_blocs[bi]
-                lj = self.end_vertical_blocs[bj]
-
-                # ara caracters equal?
-                alpha = self.Q[li - 1]
-                beta = self.T[lj - 1]
-                if alpha == beta:
-                    continue  # we check only the mismatch case
-
-                # positions of the end of the previous top left block:
-                tli = self.end_horizontal_blocs[bi - 1]
-                tlj = self.end_vertical_blocs[bj - 1]
-
-                fi = tli + 1  # first line in the block
-                fj = tlj + 1  # first line in the column
-
-                h = li - tli  # height of the current block
-                l = lj - tlj  # width of the current block
-
-                local_to_global = lambda x, y: self.matrix[x + fi][y + fj]
-
-                # print(f"check bloc {fi,fj} to {li,lj}")
-                # check the last line:
-                x = h - 1
-                for y in range(l):
-                    # print(f"test {x,y}, in block starting positions {fi, fj}: {local_to_global(x,y)} {self.matrix[x + fi][y + fj]}")
-                    if x <= y:
-                        assert local_to_global(x, y) == min(
-                            local_to_global(x, y - 1) + 1, local_to_global(0, y - x) + x
-                        ), f"{x, y} in block starting positions {fi, fj}: {local_to_global(x,y)} != min {local_to_global(x,y-1), local_to_global(0,y-x)}"
-                    else:
-                        assert local_to_global(x, y) == min(
-                            local_to_global(x, y - 1) + 1, local_to_global(x - y, 0) + y
-                        ), f"{x, y} in block starting positions {fi, fj}: {local_to_global(x,y)} != min {local_to_global(x,y-1), local_to_global(x-y,0)}"
-
-                # check the last column:
-                y = l - 1
-                for x in range(h):
-                    # print(f"test {x,y}, in block starting positions {fi, fj}: {local_to_global(x,y)} {self.matrix[x + fi][y + fj]}")
-                    if x <= y:
-                        assert local_to_global(x, y) == min(
-                            local_to_global(x, y - 1) + 1, local_to_global(0, y - x) + x
-                        ), f"{x, y} in block starting positions {fi, fj}: {local_to_global(x,y)} != min {local_to_global(x,y-1), local_to_global(0,y-x)}"
-                    else:
-                        assert local_to_global(x, y) == min(
-                            local_to_global(x, y - 1) + 1, local_to_global(x - y, 0) + y
-                        ), f"{x, y} in block starting positions {fi, fj}: {local_to_global(x,y)} != min {local_to_global(x,y-1), local_to_global(x-y,0)}"
-
-                # check the bottom right value of the biggest square in the block:
-                size_square = min(h, l)
-                assert (
-                    local_to_global(size_square - 1, size_square - 1)
-                    == local_to_global(0, 0) + size_square - 1
-                ), f"value square is {local_to_global(size_square - 1, size_square - 1)} != {local_to_global(0,0)} + {size_square -1} in block starting positions {fi, fj}"
-
-                # check each value is equal to its diagonal on first line or column + size diagonal:
-                for x in range(1, h):
-                    for y in range(1, l):
-                        minxy = min(x, y)
-                        assert local_to_global(x, y) == minxy + local_to_global(
-                            max(x - minxy, 0), max(y - minxy, 0)
-                        )
-
-        return True
 
 
 class LocalED(LocalMatrix):
