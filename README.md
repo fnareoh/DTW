@@ -19,7 +19,7 @@ pip install -e .
 
 # Experiment reproduction
 
-Experiments for the default parameters should be reproducible with the following (simplistic) bash script.
+Experiments for the default parameters should be reproducible with the following (simplistic) bash script. The results are outputted progressively to a `results` folder.
 
 ```
 ./experiments.sh
