@@ -1,4 +1,4 @@
-"""Computes a matrix of DTW distances between a pattern Q and a text T
+"""Computes a matrix of DTW distances between a pattern P and a text T
     In the matrix a block is defined by a a^height x b^width letters to be compared
     Only distances <= k must be computed
     Computations of a block is in O(height + width).

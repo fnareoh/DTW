@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Computes a matrix of DTW distances between a pattern Q and a text T
+"""Computes a matrix of DTW distances between a pattern P and a text T
     In the matrix a block is defined by a a^height x b^width letters to be compared
     Only distances <= k must be computed
     Computations of a block is in O(height + width).
@@ -17,29 +17,29 @@ from .block import Block
 
 class DtwByBlocks:
     """
-    Computes the DTW matrix for a pattern Q and a text T in O(#runsQ |T| + |Q| #runsT) time and space.
+    Computes the DTW matrix for a pattern P and a text T in O(#runsP |T| + |P| #runsT) time and space.
     """
 
-    def __init__(self, Q, T, max_value=sys.maxsize):
+    def __init__(self, P, T, max_value=sys.maxsize):
         """Init and compute a DTW matrix
 
-        Computes only frames of blocks (a block is computed for each a^height of Q versus b^width of T)
+        Computes only borders of blocks (a block is computed for each a^height of P versus b^width of T)
         Each block is computed in O(height + width)
 
         Here a match is considered a 0 and a mismatch as 1.
         Args:
-            Q ([str]): query sequence -> vertical in the matrix
-            T ([str]): target sequence -> horizontal in the matrix
+            P ([str]): Pattern string -> vertical in the matrix
+            T ([str]): target string -> horizontal in the matrix
             max_value (int): maximal value to be computed in the matrix
         """
 
-        self.Q = Q
+        self.P = P
         self.T = T
         self.max_value = max_value
         #      T
         #  --------
         #  |
-        # Q |
+        # P |
         #  |
 
         # Determine block positions:
@@ -52,10 +52,10 @@ class DtwByBlocks:
 
         # list of horizontal frontiers:
         self.end_horizontal_blocks = []
-        for i in range(1, len(self.Q)):
-            if self.Q[i] != self.Q[i - 1]:
+        for i in range(1, len(self.P)):
+            if self.P[i] != self.P[i - 1]:
                 self.end_horizontal_blocks.append(i - 1)
-        self.end_horizontal_blocks.append(len(self.Q) - 1)
+        self.end_horizontal_blocks.append(len(self.P) - 1)
 
         # Future array of blocks:
         self.block_matrix = [[] for i in range(len(self.end_horizontal_blocks))]
@@ -72,7 +72,7 @@ class DtwByBlocks:
             [str]: string view of all blocks
         """
         res = ""
-        res += f"Q (vertical): {self.Q}\n"
+        res += f"P (vertical): {self.P}\n"
         res += f"T (horizontal): {self.T}\n"
         res += f"end_vertical_blocks: {self.end_vertical_blocks}\n"
         res += f"end_horizontal_blocks: {self.end_horizontal_blocks}\n"
@@ -145,13 +145,13 @@ class DtwByBlocks:
                     ].rightmost_cuts
 
                 T_letter = self.T[col_end]
-                Q_letter = self.Q[line_end]
+                P_letter = self.P[line_end]
 
                 # Block(l, h, False, Vnw, Vw, Vn, h_cuts, v_cuts, line_start, line_end, column_start, column_end)
                 current_block = Block(
                     height=height,
                     width=width,
-                    equals=(Q_letter == T_letter),
+                    equals=(P_letter == T_letter),
                     Vnw=Vnw,
                     Vw=Vw,
                     Vn=Vn,
@@ -167,14 +167,14 @@ class DtwByBlocks:
                 self.block_matrix[v_block_id][h_block_id] = current_block
 
 
-def main(Q, T, max_value=sys.maxsize):
+def main(P, T, max_value=sys.maxsize):
     """Computes a dtw matrix
 
     Args:
-        Q ([str]): query
+        P ([str]): pattern
         T ([str]): target
     """
-    dtw = DtwByBlocks(Q, T, max_value)
+    dtw = DtwByBlocks(P, T, max_value)
     print(dtw)
 
 
@@ -184,4 +184,4 @@ if __name__ == "__main__":
     elif len(sys.argv) == 4:
         main(sys.argv[1], sys.argv[2], int(sys.argv[3]))
     else:
-        sys.stderr.write(f"Usage: python {sys.argv[0]} Q T <max_value>\n")
+        sys.stderr.write(f"Usage: python {sys.argv[0]} P T <max_value>\n")

@@ -22,9 +22,9 @@ def main(nb_tests, size_min, bound_homopol):
     # nb_tests = 10
     # size_min = 1000
     # bound_homopol = 10
-    QT_strings = []
+    PT_strings = []
     for _ in range(nb_tests):
-        QT_strings.append(
+        PT_strings.append(
             [
                 get_random_string(size_min, bound_homopol),
                 get_random_string(size_min, bound_homopol),
@@ -36,9 +36,9 @@ def main(nb_tests, size_min, bound_homopol):
     with Timer() as classical_time:
         for i in range(nb_tests):
             update_progress(i / float(nb_tests))
-            Q = QT_strings[i][0]
-            T = QT_strings[i][1]
-            ldtw = PM_DTW(Q, T)
+            P = PT_strings[i][0]
+            T = PT_strings[i][1]
+            ldtw = PM_DTW(P, T)
             ldtw.fill()
             classic_res.append(ldtw.get_last_value())
         update_progress(1)
@@ -49,9 +49,9 @@ def main(nb_tests, size_min, bound_homopol):
     with Timer() as block_time:
         for i in range(nb_tests):
             update_progress(i / float(nb_tests))
-            Q = QT_strings[i][0]
-            T = QT_strings[i][1]
-            dtw = DtwByBlocks(Q, T)
+            P = PT_strings[i][0]
+            T = PT_strings[i][1]
+            dtw = DtwByBlocks(P, T)
             dtw_block_res.append(dtw.get_br_value())
             nb_blocks += dtw.get_nb_blocks()
         update_progress(1)
@@ -63,7 +63,7 @@ def main(nb_tests, size_min, bound_homopol):
     for i in range(nb_tests):
         assert (
             classic_res[i] == dtw_block_res[i]
-        ), f"Test failed with {QT_strings[i][0]} {QT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]}"
+        ), f"Test failed with {PT_strings[i][0]} {PT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]}"
 
     print(f"We performed {nb_tests} tests, all passed !")
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) != 4:
         sys.stderr.write(
-            f"Usage: python {sys.argv[0]} nb_tests min_size_Q_T homopol_size_bound\n"
+            f"Usage: python {sys.argv[0]} nb_tests min_size_P_T homopol_size_bound\n"
         )
     else:
         main(

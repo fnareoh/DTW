@@ -17,16 +17,16 @@ class Constant:
 
 class PM_Matrix:
     """
-    Stores a matrix |Q|x|T| (|Q|+1 lines and |T|+1columns),
-    strings Q and T and the score system (match, mismatch, gap)
+    Stores a matrix |P|x|T| (|P|+1 lines and |T|+1columns),
+    strings P and T and the score system (match, mismatch, gap)
     defines some local alignment functions
     """
 
-    def __init__(self, Q, T):
+    def __init__(self, P, T):
         """ defines and stores initial values"""
 
         consta = Constant()
-        self.Q = Q
+        self.P = P
         self.T = T
         self.mismatch = consta.mismatch
         self.match = consta.match
@@ -34,17 +34,17 @@ class PM_Matrix:
         #      T
         #  --------
         #  |
-        # Q |
+        # P |
         #  |
 
-        self.matrix = [[] for i in range(len(Q) + 1)]
-        for i in range(len(Q) + 1):
+        self.matrix = [[] for i in range(len(P) + 1)]
+        for i in range(len(P) + 1):
             self.matrix[i] = [0 for j in range(len(T) + 1)]
 
         # initializes first line and first columns for pattern matching
         for j in range(0, len(self.T) + 1):
             self.matrix[0][j] = 0
-        for i in range(1, len(self.Q) + 1):
+        for i in range(1, len(self.P) + 1):
             self.matrix[i][0] = sys.maxsize
 
         # Determine block positions:
@@ -63,14 +63,14 @@ class PM_Matrix:
         self.end_horizontal_blocs.append(
             0
         )  # first line is considered as a special block
-        for i in range(1, len(self.Q)):
-            if self.Q[i] != self.Q[i - 1]:
+        for i in range(1, len(self.P)):
+            if self.P[i] != self.P[i - 1]:
                 self.end_horizontal_blocs.append(i)
-        self.end_horizontal_blocs.append(len(self.Q))
+        self.end_horizontal_blocs.append(len(self.P))
         self.fill()
 
     def fill():
-        return self.matrix[len(self.Q)][len(self.T)]
+        return self.matrix[len(self.P)][len(self.T)]
 
     def __str__(self):
         """ string the matrix"""
@@ -102,9 +102,9 @@ class PM_Matrix:
         res += line + "\n"
 
         # all other lines
-        for i in range(1, len(self.Q) + 1):
-            # line = f"\033[00m{self.Q[i-1]:>{width}}"
-            line = f"\033[00m{self.Q[i-1]:>{width}}"
+        for i in range(1, len(self.P) + 1):
+            # line = f"\033[00m{self.P[i-1]:>{width}}"
+            line = f"\033[00m{self.P[i-1]:>{width}}"
             for j in range(0, len(self.T) + 1):
                 if self.matrix[i][j] == sys.maxsize:
                     line += f"{inf:>{width}}"
@@ -133,7 +133,7 @@ class PM_Matrix:
 
     def from_diag(self, i, j):
         return (
-            self.matrix[i - 1][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1])
+            self.matrix[i - 1][j - 1] + self.dist(self.P[i - 1], self.T[j - 1])
             == self.matrix[i][j]
         )
 
@@ -145,30 +145,30 @@ class PM_Matrix:
 
     def trace_back(self, pos):
         assert pos < len(self.matrix[0])
-        i = len(self.Q)
+        i = len(self.P)
         j = pos
-        alQ = ""
+        alP = ""
         alT = ""
         nb_matchs = 0
         while i > 0 and j > 0:
             # test first the diagonal, in order to favor diag in case of ex-aequos
             if self.from_diag(i, j):
                 # diag
-                alQ = self.Q[i - 1] + alQ
+                alP = self.P[i - 1] + alP
                 alT = self.T[j - 1] + alT
-                if self.Q[i - 1] == self.T[j - 1]:
+                if self.P[i - 1] == self.T[j - 1]:
                     nb_matchs += 1
                 i -= 1
                 j -= 1
             elif self.from_left(i, j):
                 # left
-                alQ = "-" + alQ
+                alP = "-" + alP
                 alT = self.T[j - 1] + alT
                 j -= 1
             elif self.from_top(i, j):
                 # up
                 alT = "-" + alT
-                alQ = self.Q[i - 1] + alQ
+                alP = self.P[i - 1] + alP
                 i -= 1
             else:
                 raise ValueError(
@@ -176,19 +176,19 @@ class PM_Matrix:
                 )
         # here either i=0 or j=0
         assert i == 0
-        return j, alQ, alT
+        return j, alP, alT
 
     def min_last_row_val_index(self):
-        m = min(self.matrix[len(self.Q)])
-        return m, self.matrix[len(self.Q)].index(m)
+        m = min(self.matrix[len(self.P)])
+        return m, self.matrix[len(self.P)].index(m)
 
     def index_min_last_row(self):
-        return self.matrix[len(self.Q)].index(min(self.matrix[len(self.Q)]))
+        return self.matrix[len(self.P)].index(min(self.matrix[len(self.P)]))
 
     def k_smallest(self, k):
         return sorted(
-            range(len(self.matrix[len(self.Q)])),
-            key=lambda sub: self.matrix[len(self.Q)][sub],
+            range(len(self.matrix[len(self.P)])),
+            key=lambda sub: self.matrix[len(self.P)][sub],
         )[:k]
 
     def compute_origin_min_position(self):
@@ -199,19 +199,19 @@ class PM_DTW(PM_Matrix):
     #### DTW ####
     def from_left(self, i, j):
         return (
-            self.matrix[i][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1])
+            self.matrix[i][j - 1] + self.dist(self.P[i - 1], self.T[j - 1])
             == self.matrix[i][j]
         )
 
     def from_top(self, i, j):
         return (
-            self.matrix[i - 1][j] + self.dist(self.Q[i - 1], self.T[j - 1])
+            self.matrix[i - 1][j] + self.dist(self.P[i - 1], self.T[j - 1])
             == self.matrix[i][j]
         )
 
     def fill(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
-        for i in range(1, len(self.Q) + 1):
+        for i in range(1, len(self.P) + 1):
             # i-th line
             for j in range(1, len(self.T) + 1):
                 # j-th column
@@ -221,9 +221,9 @@ class PM_DTW(PM_Matrix):
                         self.matrix[i][j - 1],
                         self.matrix[i - 1][j],
                     )
-                    + self.dist(self.Q[i - 1], self.T[j - 1])
+                    + self.dist(self.P[i - 1], self.T[j - 1])
                 )
-        return self.matrix[len(self.Q)][len(self.T)]
+        return self.matrix[len(self.P)][len(self.T)]
 
 
 class PM_ED(PM_Matrix):
@@ -236,39 +236,39 @@ class PM_ED(PM_Matrix):
 
     def fill(self):
         """ fills the matrix for global alignment (Needleman & Wunsch algo)"""
-        for i in range(1, len(self.Q) + 1):
+        for i in range(1, len(self.P) + 1):
             # i-th line
             for j in range(1, len(self.T) + 1):
                 # j-th column
                 self.matrix[i][j] = min(
-                    self.matrix[i - 1][j - 1] + self.dist(self.Q[i - 1], self.T[j - 1]),
+                    self.matrix[i - 1][j - 1] + self.dist(self.P[i - 1], self.T[j - 1]),
                     self.matrix[i][j - 1] + self.gap,
                     self.matrix[i - 1][j] + self.gap,
                 )
-        return self.matrix[len(self.Q)][len(self.T)]
+        return self.matrix[len(self.P)][len(self.T)]
 
 
-def main(Q, T):
-    ldtw = PM_DTW(Q, T)
+def main(P, T):
+    ldtw = PM_DTW(P, T)
     ldtw.fill()
     print("******** Dynamic Time Warp **********")
     min_dtw, pos_dtw = ldtw.min_last_row_val_index()
-    origin, alQ, alT = ldtw.trace_back(pos_dtw)
+    origin, alP, alT = ldtw.trace_back(pos_dtw)
     print(
-        f"Alignement (cost {min_dtw}) of Q ending at {pos_dtw} in T starts at {origin} in T."
+        f"Alignement (cost {min_dtw}) of P ending at {pos_dtw} in T starts at {origin} in T."
     )
-    print(alQ)
+    print(alP)
     print(alT)
 
-    led = PM_ED(Q, T)
+    led = PM_ED(P, T)
     led.fill()
     print("******** Edit distance **********")
     min_ed, pos_ed = led.min_last_row_val_index()
-    origin, alQ, alT = led.trace_back(pos_ed)
+    origin, alP, alT = led.trace_back(pos_ed)
     print(
-        f"Alignement (cost {min_ed}) of Q ending at {pos_ed} in T starts at {origin} in T."
+        f"Alignement (cost {min_ed}) of P ending at {pos_ed} in T starts at {origin} in T."
     )
-    print(alQ)
+    print(alP)
     print(alT)
 
 

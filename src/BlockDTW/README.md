@@ -1,14 +1,14 @@
 
 
-# Computes the Dynamic Time Warping distances for every alignment of a pattern Q and and a text T in O(#runQ × |T| + |Q| × #runT) time
+# Computes the Dynamic Time Warping distances for every alignment of a pattern P and and a text T in O(#runP × |T| + |P| × #runT) time
 
 
 
-In the dynamic programming matrix a block is defined by a run in Q of length height and a run of T of length width. The border of a block is computed in O(height + width) time.
+In the dynamic programming matrix a block is defined by a run in P of length height and a run of T of length width. The border of a block is computed in O(height + width) time.
 
 ## Usage:
 
-`python python DTW_blocks.py Q T <max_value>`
+`python python DTW_blocks.py P T <max_value>`
 
 Compute the borders of the blocks of the dynamic programming matrix filled with the DTW distances. If a threshold k is fixed, the algorithm does not compute distances larger than k to save time.
 Output is only for validation: for each block the 4 extreme values are shown as well as the positions where the value of the distance increases.
@@ -20,7 +20,7 @@ Example:
 `python tests/validation.py 10 1000 10`
 
 Usage:
-`python tests/validation.py nb_tests min_size_Q_T homopol_size_bound`
+`python tests/validation.py nb_tests min_size_P_T homopol_size_bound`
 
 Enables to validate this approach as compared to a fully computed dynamic matrix.
 Compares running times.
@@ -29,7 +29,7 @@ Performs
 
 * nb_tests (eg 10)
 
-* with Q and T sizes at least equal to `min_size_Q_T` (eg 1000)
+* with P and T sizes at least equal to `min_size_P_T` (eg 1000)
 
 * each letter is randomly repeated between 1 and `homopol_size_bound` time (eg 10)
 
