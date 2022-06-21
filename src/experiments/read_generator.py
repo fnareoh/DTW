@@ -10,8 +10,8 @@ __email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
 
 class Error_rate:
     def __init__(self, hom):
-        self.snp = 1  # percentage of substitutions
-        self.indel = 0.05  # percentage of indels
+        self.snp = 1 / 100
+        self.indel = 0.05 / 100
         self.max_len_ID = 10
         self.seq_S = 0.001
         self.homopoly = hom
@@ -60,11 +60,11 @@ def add_IDS_err(S, err):
     i = 0
     while i < len(S):
         c = S[i]
-        if random() < err.snp / 100:
+        if random() < err.snp:
             nb_IDS += 1
             c = choice([x for x in nucleotides if x != c])
             list_qual.append("S")
-        elif random() < err.indel / 100:
+        elif random() < err.indel:
             err_type = choice(["insertion", "deletion"])
             if err_type == "insertion":
                 len_i = randint(1, err.max_len_ID)

@@ -85,7 +85,10 @@ def avg_same_x(x, y_dict):
             last_x = x[i]
     unique_x.append(last_x)
     for k, y in y_dict.items():
-        if len(current_y[k]) > 0:
+        if len(current_y[k]) == 1:
+            y_mean[k].append((current_y[k][0]))
+            y_stdev[k].append(0)
+        if len(current_y[k]) > 2:
             y_mean[k].append(mean(current_y[k]))
             y_stdev[k].append(stdev(current_y[k]))
         current_y[k] = []
@@ -94,7 +97,7 @@ def avg_same_x(x, y_dict):
 
 def parse_args():
     other = {"ID": "H", "H": "ID"}
-    param = {"ID": "*", "H": "*", "SNP": 1}
+    param = {"ID": "*", "H": "*", "SNP": 0.01}
     param["basename"] = argv[1]
     tmp_parse = param["basename"].split("_")
     assert tmp_parse[-2] == "N"
@@ -102,7 +105,7 @@ def parse_args():
     param["fixed"] = argv[2]
     assert param["fixed"] in ["ID", "H"]
     param["varying"] = other[param["fixed"]]
-    param[param["fixed"]] = round(float(argv[3]), 2)
+    param[param["fixed"]] = float(argv[3])
 
     # Get values
     x = []
@@ -116,9 +119,9 @@ def parse_args():
         "ED_less_bio": [],
         "DTW_less_bio": [],
     }
-    for name in glob(
-        f"{param['basename']}_ID_{param['ID']}_SNP_{param['SNP']}_H_{param['H']}_seqS_0.001*.csv"
-    ):
+    path = f"{param['basename']}_ID_{param['ID']}_SNP_{param['SNP']}_H_{param['H']}_seqS_0.001*.csv"
+    print(path)
+    for name in glob(path):
         output = parse_csv(name)
         minus_bio_var(output)  # Deducts the bio distance !
         x.append(output[param["varying"]])
