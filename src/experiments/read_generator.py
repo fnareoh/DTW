@@ -1,4 +1,4 @@
-from dynamic_prog.local_alignement import LocalED, LocalDTW
+from dynamic_prog.pattern_matching import LocalED, LocalDTW
 from sys import argv
 import argparse
 from random import randint, random, choice, choices
@@ -30,7 +30,7 @@ def evaluate_dtw_ed(R, G, pos, qual, biological_var, bio_qual):
     score_ed, pos_ed = led.min_last_row_val_index()
     start_ed, _, _ = led.compute_origin_min_position()
 
-    if False:  
+    if False:
         print("************* Read **************")
         print(f"starting position: {pos}")
         print(f"biological_var: {biological_var}")

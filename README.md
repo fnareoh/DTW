@@ -1,4 +1,4 @@
-# Frame DTW package
+# BlockDTW package
 
 ## Install
 
@@ -28,7 +28,7 @@ Experiments for the default parameters should be reproducible with the following
 # Module description
 
 The source code is available in the `src`folder and organized in sub-modules:
-* `dynamic_prog` contains dynamic programming solutions for computing global and local alignments between strings under Edit distance, Homoedit distace, DTW.
+* `dynamic_prog` contains dynamic programming solutions for computing global alignments and pattern matching between strings under Edit distance and DTW.
 * `BlockDTW` is an implementation of an algorithm that computes the distances between a pattern P of length M with m runs and a text T of length N with n runs in time O(nM+mN), with some extra optimisations for the small-distance regime.  
 * `experiments` is a module for comparing how edit distance and DTW distance are affected by homopolymer errors. In particular, `read_generator.py` generates reads and computes the ED and DTW distances from them to a reference genome, and `plot.py` compares the resulting distances graphically using matplotlib.
 

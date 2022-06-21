@@ -1,4 +1,4 @@
-from dynamic_prog.local_alignement import LocalDTW
+from dynamic_prog.pattern_matching import LocalDTW
 from BlockDTW.DTW_blocks import *
 from timer import Timer
 from progress_bar import update_progress

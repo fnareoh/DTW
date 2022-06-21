@@ -1,5 +1,5 @@
 """
-This is a dynamic programming computation of pattern matching for DTW. 
+This is a dynamic programming computation of pattern matching for DTW.
 """
 
 __author__ = "Garance Gourdel, Pierre Peterlongo"
@@ -41,7 +41,7 @@ class LocalMatrix:
         for i in range(len(Q) + 1):
             self.matrix[i] = [0 for j in range(len(T) + 1)]
 
-        # initializes first line and first columns for a local alignment
+        # initializes first line and first columns for pattern matching
         for j in range(0, len(self.T) + 1):
             self.matrix[0][j] = 0
         for i in range(1, len(self.Q) + 1):
