@@ -1,4 +1,4 @@
-from dynamic_prog.pattern_matching import LocalDTW
+from dynamic_prog.pattern_matching import PM_DTW
 from BlockDTW.DTW_blocks import *
 from timer import Timer
 from progress_bar import update_progress
@@ -38,7 +38,7 @@ def main(nb_tests, size_min, bound_homopol):
             update_progress(i / float(nb_tests))
             Q = QT_strings[i][0]
             T = QT_strings[i][1]
-            ldtw = LocalDTW(Q, T)
+            ldtw = PM_DTW(Q, T)
             ldtw.fill()
             classic_res.append(ldtw.get_last_value())
         update_progress(1)

@@ -15,7 +15,7 @@ class Constant:
     gap = 1
 
 
-class LocalMatrix:
+class PM_Matrix:
     """
     Stores a matrix |Q|x|T| (|Q|+1 lines and |T|+1columns),
     sequences Q and T and the score system (match, mismatch, gap)
@@ -195,7 +195,7 @@ class LocalMatrix:
         return self.trace_back(self.index_min_last_row())
 
 
-class LocalDTW(LocalMatrix):
+class PM_DTW(PM_Matrix):
     #### DTW ####
     def from_left(self, i, j):
         return (
@@ -226,7 +226,7 @@ class LocalDTW(LocalMatrix):
         return self.matrix[len(self.Q)][len(self.T)]
 
 
-class LocalED(LocalMatrix):
+class PM_ED(PM_Matrix):
     #### Edit distance (Needleman & Wunsch) ####
     def from_left(self, i, j):
         return self.matrix[i][j - 1] + self.gap == self.matrix[i][j]
@@ -249,7 +249,7 @@ class LocalED(LocalMatrix):
 
 
 def main(Q, T):
-    ldtw = LocalDTW(Q, T)
+    ldtw = PM_DTW(Q, T)
     ldtw.fill()
     print("******** Dynamic Time Warp **********")
     min_dtw, pos_dtw = ldtw.min_last_row_val_index()
@@ -260,7 +260,7 @@ def main(Q, T):
     print(alQ)
     print(alT)
 
-    led = LocalED(Q, T)
+    led = PM_ED(Q, T)
     led.fill()
     print("******** Edit distance **********")
     min_ed, pos_ed = led.min_last_row_val_index()

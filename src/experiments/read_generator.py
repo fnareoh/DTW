@@ -1,4 +1,4 @@
-from dynamic_prog.pattern_matching import LocalED, LocalDTW
+from dynamic_prog.pattern_matching import PM_ED, PM_DTW
 from sys import argv
 import argparse
 from random import randint, random, choice, choices
@@ -22,8 +22,8 @@ class Error_rate:
 
 def evaluate_dtw_ed(R, G, pos, qual, biological_var, bio_qual):
     """ Aligns the sequence R to G w.r. to ED and DTW """
-    ldtw = LocalDTW(R, G)
-    led = LocalED(R, G)
+    ldtw = PM_DTW(R, G)
+    led = PM_ED(R, G)
     score_dtw, pos_dtw = ldtw.min_last_row_val_index()
     start_dtw, al_P, al_T = ldtw.compute_origin_min_position()
 
