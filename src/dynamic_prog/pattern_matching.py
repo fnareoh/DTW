@@ -18,7 +18,7 @@ class Constant:
 class PM_Matrix:
     """
     Stores a matrix |Q|x|T| (|Q|+1 lines and |T|+1columns),
-    sequences Q and T and the score system (match, mismatch, gap)
+    strings Q and T and the score system (match, mismatch, gap)
     defines some local alignment functions
     """
 

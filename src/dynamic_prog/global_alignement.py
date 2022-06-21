@@ -16,7 +16,7 @@ class Constant:
 
 
 class Alignement:
-    """ stores an alignement of a read to a given genome """
+    """ stores an alignement of a string against another """
 
     def __init__(self, dist, pos, l, S):
         self.dist = dist
@@ -36,7 +36,7 @@ class Alignement:
 
 class DynamicMatrix:
     """stores a matrix |S|x|T| (|S|+1 lines and |T|+1columns),
-    sequences S and T and the score system (match, mismatch, gap)
+    strings S and T and the score system (match, mismatch, gap)
     defines some global alignment functions
     """
 
@@ -133,8 +133,8 @@ class DynamicMatrix:
 
     #### GENERIC PRINT ####
     def printGlobalAln(self):
-        """prints a global alignment of best score
-        and returns the % of id
+        """
+        prints a global alignment of best score and returns the % of id
         """
         i = len(self.S)
         j = len(self.T)
@@ -182,7 +182,6 @@ class DynamicMatrix:
 
 
 def demo():
-
     print("******** Needleman Wunsch **********")
     S = "CATGACTAAAG"
     T = "TACTAG"
