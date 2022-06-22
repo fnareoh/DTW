@@ -1,6 +1,4 @@
 # BlockDTW package
-Dynamic Time Warp distance between a pattern $P$ of length $M$ with $m$ runs and a text $T$ of length $N$ with n runs in time $O(nM+mN)$.
-
 
 ## Install
 
