@@ -93,9 +93,9 @@ class DtwByBlocks:
     def __compute_blocks__(self):
         """Compute all blocks from a matrix"""
         # We compute blocks from top to bottom
-        ## When we navigate in a line of blocks (h_block_id), blocks are delimited by the end of vertical blocks.
-        ## This explain why h_block_id is in end_vertical_blocks
-        ## symmetrically explanation for column of blocks
+        ## When we navigate in a row of blocks (h_block_id), blocks are delimited by the endpoints of vertical blocks.
+        ## This explains why h_block_id is in end_vertical_blocks
+        ## symmetrical explanation for a column of blocks
         for h_block_id in range(len(self.end_vertical_blocks)):
             for v_block_id in range(len(self.end_horizontal_blocks)):
                 # get 3 top values:
@@ -131,13 +131,13 @@ class DtwByBlocks:
 
                 # get previous cuts
                 if v_block_id == 0:
-                    h_cuts = []  # we are on the first line, no cut upside
+                    h_cuts = []  # we are in the first row, no cuts above
                 else:
                     h_cuts = self.block_matrix[v_block_id - 1][h_block_id].bottom_cuts
                 if h_block_id == 0:
                     v_cuts = [
                         i for i in range(height)
-                    ]  # we are on the first column, only cuts on the left.
+                    ]  # we are in the first column, only cuts on the left.
                 else:
                     v_cuts = self.block_matrix[v_block_id][
                         h_block_id - 1
