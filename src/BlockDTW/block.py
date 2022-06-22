@@ -53,8 +53,8 @@ class Block:
         self.Vnw = Vnw
         self.Vw = Vw
         self.Vn = Vn
-        self.h_cuts = h_cuts  # check that is this is pointer only not a deep copy (else compute directly self.top_cuts here)
-        self.v_cuts = v_cuts  # check that is this is pointer only not a deep copy (else compute directly self.leftmost_cuts here)
+        self.h_cuts = h_cuts  # check that this is pointer only not a deep copy (else compute directly self.top_cuts here)
+        self.v_cuts = v_cuts  # check that this is pointer only not a deep copy (else compute directly self.leftmost_cuts here)
         self.line_start = line_start
         self.line_end = line_end
         self.column_start = column_start
