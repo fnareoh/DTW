@@ -10,4 +10,4 @@ N=600
 python src/experiments/read_generator.py data/ecoli_10kb.fa -N $N
 
 # Plot scripts
-python src/experiments/plot.py results/ecoli_10kb_N_$N ID 0.05
+python src/experiments/plot.py results/ecoli_10kb_N_$N ID 0.0005
