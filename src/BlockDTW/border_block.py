@@ -35,7 +35,7 @@ class BorderBlock:
         max_value=sys.maxsize,
         coment=None,
     ):
-        """initialize and computes a block
+        """initialize and computes all values of a block that are strictly bellow max_value.
 
         Args:
             l (int): length of the block.
@@ -44,21 +44,21 @@ class BorderBlock:
             Vnw (int): value on top left of the block pos + (-1, -1).
             q_North (list<int,int>): sorted list of values in the bottom row of the block above together with the first position of the row this value appears.
             q_West (list<int,int>): sorted list of values in the right column of the block to the left together with the first position of the column this value appears.
-            max_value (int): optional : maximal value computed in the matrix. Any value higher than max_value is not computed.
+            max_value (int): optional : maximal value computed in the matrix. Any value higher than max_value is not computed and represented by max_value.
             coment (str): optional : optional coment to give when printing the block.
         """
         self.width = width
         self.height = height
         self.cost = cost
+        self.max_value = max_value
+        self.coment = coment
+
         Vnw = min(Vnw, q_North[0][0], q_West[0][0])
         self.q_top = self.__compute_adjacent_q__(cost, width, Vnw, q_North)
         self.q_left = self.__compute_adjacent_q__(cost, height, Vnw, q_West)
         assert self.q_top[-1][1] < self.width
         assert self.q_left[-1][1] < self.height
         assert self.q_top[0][0] == self.q_left[0][0]
-
-        self.max_value = max_value
-        self.coment = coment
 
         self.__compute_bottom_right__()
 
@@ -75,11 +75,18 @@ class BorderBlock:
             if j != 0:
                 j += 1
             while Vnw + (j + 1) * cost < val + cost and j <= last_pos and j < width:
+                if (
+                    self.max_value is not None
+                    and Vnw + (j + 1) * cost >= self.max_value
+                ):
+                    q.append((self.max_value, j))
+                    return q
                 q.append((Vnw + (j + 1) * cost, j))
                 j += 1
-            if j == 0:
-                q.append((val + cost, j))
-            elif j <= last_pos and j < width:
+            if j == 0 or (j <= last_pos and j < width):
+                if self.max_value is not None and val + cost >= self.max_value:
+                    q.append((self.max_value, j))
+                    return q
                 q.append((val + cost, j))
         return q
 
@@ -92,6 +99,12 @@ class BorderBlock:
                 if k >= min(self.height, self.width):
                     return
                 if len(q_right) == 0 or q_right[-1][0] < val + self.cost * k:
+                    if (
+                        self.max_value is not None
+                        and val + self.cost * k >= self.max_value
+                    ):
+                        q_right.append((self.max_value, k))
+                        return
                     q_right.append((val + self.cost * k, k))
         return
 
@@ -102,6 +115,12 @@ class BorderBlock:
 
             nei = q_right[-1][0]
             if val + self.cost * (width - 1) > nei:
+                if (
+                    self.max_value is not None
+                    and val + self.cost * (width - 1) >= self.max_value
+                ):
+                    q_right.append((self.max_value, pos + width - 1))
+                    return
                 q_right.append((val + self.cost * (width - 1), pos + width - 1))
         return
 
@@ -110,8 +129,10 @@ class BorderBlock:
         self.q_right, self.q_bottom = [], []
         if self.height == 1:
             self.q_bottom = self.q_top.copy()
+            self.q_right = [(self.q_bottom[-1][0], 0)]
         elif self.width == 1:
             self.q_right = self.q_left.copy()
+            self.q_bottom = [(self.q_right[-1][0], 0)]
         else:
             # Transfer from left to bottom
             self.__transfer_triangle__(self.height, self.q_left, self.q_bottom)
@@ -165,11 +186,17 @@ class BorderBlock:
         else:
             res += " Not bounded by a maximal value\n"
 
-        res += " " + " ".join([str(e) for e in unpack(self.q_top, self.width)]) + "\n"
+        if self.height >= 2:
+            res += (
+                " " + " ".join([str(e) for e in unpack(self.q_top, self.width)]) + "\n"
+            )
         left = unpack(self.q_left, self.height)
         right = unpack(self.q_right, self.height)
         for i in range(1, self.height - 1):
-            res += f" {left[i]}" + "  " * (self.width - 2) + f" {right[i]}\n"
+            if self.width >= 2:
+                res += f" {left[i]}" + "  " * (self.width - 2) + f" {right[i]}\n"
+            else:
+                res += f" {right[i]}\n"
         res += " " + " ".join([str(e) for e in unpack(self.q_bottom, self.width)])
 
         return res
@@ -187,6 +214,16 @@ def main():
 
     b = BorderBlock(2, width, 1, 0, [(0, 0)], [(5, 0)])
     print(b)
+
+    b = BorderBlock(2, 1, 1, 0, [(0, 0)], [(5, 0)])
+    print(b)
+
+    b = BorderBlock(1, 1, 1, 0, [(0, 0)], [(5, 0)])
+    print(b)
+
+    b = BorderBlock(height, width, 1, Vnw, q_North, q_West, max_value=5)
+    print(b)
+
     exit()
 
 
