@@ -53,6 +53,10 @@ class BorderBlock:
         Vnw = min(Vnw, q_North[0][0], q_West[0][0])
         self.q_top = self.__compute_adjacent_q__(cost, width, Vnw, q_North)
         self.q_left = self.__compute_adjacent_q__(cost, height, Vnw, q_West)
+        assert self.q_top[-1][1] < self.width
+        assert self.q_left[-1][1] < self.height
+        assert self.q_top[0][0] == self.q_left[0][0]
+
         self.max_value = max_value
         self.coment = coment
 
@@ -77,41 +81,52 @@ class BorderBlock:
                 q.append((val + cost, j))
             elif j <= last_pos and j < width:
                 q.append((val + cost, j))
-
         return q
+
+    def __transfer_triangle__(self, width, q_top, q_right):
+        for i, (val, pos) in reversed(list(enumerate(q_top))):
+            last_pos = width
+            if i + 1 < len(q_top):
+                last_pos = q_top[i + 1][1]
+            for k in range(width - last_pos, width - pos):
+                if k >= min(self.height, self.width):
+                    return
+                if len(q_right) == 0 or q_right[-1][0] < val + self.cost * k:
+                    q_right.append((val + self.cost * k, k))
+        return
+
+    def __transfer_parralel__(self, width, q_left, q_right):
+        for i, (val, pos) in enumerate(q_left[1:]):
+            if pos + width - 1 >= max(self.height, self.width):
+                return
+
+            nei = q_right[-1][0]
+            if val + self.cost * (width - 1) > nei:
+                q_right.append((val + self.cost * (width - 1), pos + width - 1))
+        return
 
     def __compute_bottom_right__(self):
         """From q_top and q_left height and width, deduce q_right and q_bottom"""
-        self.q_bottom = [(self.q_left[-1][0], 0)]
-        self.q_right = [(self.q_top[-1][0], 0)]
+        self.q_right, self.q_bottom = [], []
+        if self.height == 1:
+            self.q_bottom = self.q_top.copy()
+        elif self.width == 1:
+            self.q_right = self.q_left.copy()
+        else:
+            # Transfer from left to bottom
+            self.__transfer_triangle__(self.height, self.q_left, self.q_bottom)
+            # Transfer from top to right
+            self.__transfer_triangle__(self.width, self.q_top, self.q_right)
 
-        # Transfer from left to bottom
-        for i, (val, pos) in reversed(list(enumerate(self.q_left[:-1]))):
-            nei = self.q_bottom[-1][0]
-            d = self.height - pos - 1
-            if val + self.cost * d == nei:
-                pass
-            elif val + self.cost * d > nei:
-                self.q_bottom.append((val + self.cost * d, d))
-                # BUG: we miss some values in trapezoid shape
+            # Tranfer parralel
+            if self.height > self.width:
+                self.__transfer_parralel__(self.width, self.q_left, self.q_right)
+            elif self.height < self.width:
+                self.__transfer_parralel__(self.height, self.q_top, self.q_bottom)
 
-        # Transfer from top to right
-        # TODO: factorize code
-        for i, (val, pos) in reversed(list(enumerate(self.q_top[:-1]))):
-            nei = self.q_right[-1][0]
-            d = self.width - pos - 1
-            print(d, val + self.cost * d)
-            if val + self.cost * d > nei:
-                print((val - nei) // self.cost + d, d)
-                for k in range((val - nei) // self.cost + d + 1, d + 1):
-                    self.q_right.append((val + self.cost * k, k))
-
-        # TODO: coppy left to right and top to bottom
-
-        print(self.q_bottom)
-        print(self.q_top)
-        print(self.q_right)
-        # assert self.q_bottom[-1][0] == self.q_left[-1][0]
+        assert self.q_bottom[-1][1] < self.width
+        assert self.q_right[-1][1] < self.height
+        assert self.q_bottom[-1][0] == self.q_right[-1][0]
         self.Vse = self.q_bottom[-1][0]
 
     def __repr_values__(self):
@@ -155,21 +170,22 @@ class BorderBlock:
         right = unpack(self.q_right, self.height)
         for i in range(1, self.height - 1):
             res += f" {left[i]}" + "  " * (self.width - 2) + f" {right[i]}\n"
-        res += (
-            " " + " ".join([str(e) for e in unpack(self.q_bottom, self.width)]) + "\n"
-        )
+        res += " " + " ".join([str(e) for e in unpack(self.q_bottom, self.width)])
 
         return res
 
 
 def main():
-    # Manual test
+    # Manual test 1
     height = 6
     width = 5
     Vnw = 3
     q_North = [(2, 0), (3, 2), (4, 3)]
     q_West = [(5, 0), (6, 4), (7, 5)]
     b = BorderBlock(height, width, 1, Vnw, q_North, q_West)
+    print(b)
+
+    b = BorderBlock(2, width, 1, 0, [(0, 0)], [(5, 0)])
     print(b)
     exit()
 
