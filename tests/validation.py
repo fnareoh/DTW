@@ -1,5 +1,6 @@
 from dynamic_prog.pattern_matching import PM_DTW
 from BlockDTW.DTW_blocks import *
+from BlockDTW.DTW_nmk import *
 from timer import Timer
 from progress_bar import update_progress
 
@@ -59,11 +60,23 @@ def main(nb_tests, size_min, bound_homopol):
     timeb = block_time.value()
     print(f"Durée per block = {round(timeb,2)}/{nb_blocks} = {timeb/nb_blocks} seconds")
 
+    dtw_border_res = []
+    with Timer() as border_time:
+        for i in range(nb_tests):
+            update_progress(i / float(nb_tests))
+            P = PT_strings[i][0]
+            T = PT_strings[i][1]
+            dtw_borders = DtwByBorders(P, T)
+            dtw_border_res.append(dtw_borders.M_block[-1][-1].Vse)
+        update_progress(1)
+    border_time.print("Durée with borders compressed = {} seconds")
+    timeb = border_time.value()
+
     # Validations
     for i in range(nb_tests):
         assert (
-            classic_res[i] == dtw_block_res[i]
-        ), f"Test failed with {PT_strings[i][0]} {PT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]}"
+            classic_res[i] == dtw_block_res[i] == dtw_border_res[i]
+        ), f"Test failed with {PT_strings[i][0]} {PT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]} vs {dtw_block_res[i]}"
 
     print(f"We performed {nb_tests} tests, all passed !")
 

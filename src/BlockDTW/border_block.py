@@ -56,10 +56,15 @@ class BorderBlock:
         Vnw = min(Vnw, q_North[0][0], q_West[0][0])
         self.q_top = self.__compute_adjacent_q__(cost, width, Vnw, q_North)
         self.q_left = self.__compute_adjacent_q__(cost, height, Vnw, q_West)
-        assert self.q_top[-1][1] < self.width
-        assert self.q_left[-1][1] < self.height
-        assert self.q_top[0][0] == self.q_left[0][0]
-
+        assert (
+            self.q_top[-1][1] < self.width
+        ), f"top row overwlows: {self.q_top[-1][1]} < {self.width} is False"
+        assert (
+            self.q_left[-1][1] < self.height
+        ), f"left column overwlows: {self.q_left[-1][1]} < {self.height} is False"
+        assert (
+            self.q_top[0][0] == self.q_left[0][0]
+        ), f"incoherent value at top left: {self.q_top[0][0]} != {self.q_left[0][0]}"
         self.__compute_bottom_right__()
 
     def __compute_adjacent_q__(self, cost, width, Vnw, q_North):
