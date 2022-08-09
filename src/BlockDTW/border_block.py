@@ -70,6 +70,10 @@ class BorderBlock:
     def __compute_adjacent_q__(self, cost, width, Vnw, q_North):
         """From q_North, Vnw, the cost and the width returns q_top.
         From q_west , Vnw, the cost and the height returns q_left."""
+        if cost == 0:
+            v = min(Vnw, q_North[0][0])
+            return [(v, 0)]
+
         q = []
         for i, (val, pos) in enumerate(q_North):
             last_pos = width
@@ -132,12 +136,9 @@ class BorderBlock:
     def __compute_bottom_right__(self):
         """From q_top and q_left height and width, deduce q_right and q_bottom"""
         self.q_right, self.q_bottom = [], []
-        if self.height == 1:
-            self.q_bottom = self.q_top.copy()
-            self.q_right = [(self.q_bottom[-1][0], 0)]
-        elif self.width == 1:
+        if self.height == 1 or self.width == 1 or self.cost == 0:
             self.q_right = self.q_left.copy()
-            self.q_bottom = [(self.q_right[-1][0], 0)]
+            self.q_bottom = self.q_top.copy()
         else:
             # Transfer from left to bottom
             self.__transfer_triangle__(self.height, self.q_left, self.q_bottom)

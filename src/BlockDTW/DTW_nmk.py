@@ -12,10 +12,15 @@ __email__ = "pierre.peterlongo@inria.fr, garance.gourdel@inria.fr"
 
 import sys, logging
 
-from .borderblock import BorderBlock, unpack
+from .border_block import BorderBlock, unpack
 
 
 def run_length_compress(T):
+    """
+    Compute the run length compressed representation of a text.
+    text contains the character of the run and length the length of the runs.
+    As a convention, it starts with a empty symbol occuring 0 time.
+    """
     text, length = [], []
     last_char = ""
     nb_occ = 0
@@ -61,11 +66,17 @@ class DtwByBorders:
         self.M_block[0][0] = BorderBlock(1, 1, 1, 0, [(0, 0)], [(0, 0)])
         for i, h in enumerate(self.height_P[1:]):
             self.M_block[i + 1][0] = BorderBlock(
-                h, 1, 1, self.max_value, [(self.max_value, 0)], [(self.max_value, 0)]
+                h,
+                1,
+                1,
+                self.max_value,
+                [(self.max_value, 0)],
+                [(self.max_value, 0)],
+                self.max_value,
             )
         for j, w in enumerate(self.width_T[1:]):
             self.M_block[0][j + 1] = BorderBlock(
-                1, w, 0, 0, [(self.max_value, 0)], [(self.max_value, 0)]
+                1, w, 0, 0, [(self.max_value, 0)], [(self.max_value, 0)], self.max_value
             )
 
         for i in range(1, len(self.M_block)):
@@ -83,6 +94,7 @@ class DtwByBorders:
                     self.M_block[i - 1][j - 1].Vse,
                     self.M_block[i - 1][j].q_bottom,
                     self.M_block[i][j - 1].q_right,
+                    self.max_value,
                 )
                 logging.debug(self.M_block[i][j])
 
