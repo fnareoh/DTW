@@ -70,33 +70,28 @@ class BorderBlock:
     def __compute_adjacent_q__(self, cost, width, Vnw, q_North):
         """From q_North, Vnw, the cost and the width returns q_top.
         From q_west , Vnw, the cost and the height returns q_left."""
+        val = min(Vnw, q_North[0][0])
         if cost == 0:
-            v = min(Vnw, q_North[0][0])
-            return [(v, 0)]
+            return [(val, 0)]
 
         q = []
-        for i, (val, pos) in enumerate(q_North):
-            last_pos = width
-            if i + 1 < len(q_North):
-                last_pos = q_North[i + 1][1]
-
-            j = pos
-            if j != 0:
-                j += 1
-            while Vnw + (j + 1) * cost < val + cost and j <= last_pos and j < width:
-                if (
-                    self.max_value is not None
-                    and Vnw + (j + 1) * cost >= self.max_value
-                ):
-                    q.append((self.max_value, j))
-                    return q
-                q.append((Vnw + (j + 1) * cost, j))
-                j += 1
-            if j == 0 or (j <= last_pos and j < width):
-                if self.max_value is not None and val + cost >= self.max_value:
-                    q.append((self.max_value, j))
-                    return q
-                q.append((val + cost, j))
+        pos = 0  # current pos
+        i_north = 0
+        while val < self.max_value and pos < width:
+            if q_North[i_north][0] <= val:
+                val = q_North[i_north][0] + self.cost
+                q.append((val, pos))
+                i_north += 1
+                if i_north < len(q_North):
+                    pos = max(q_North[i_north][1] + 1, pos + 1)
+                else:
+                    break
+            else:
+                val += self.cost
+                q.append((val, pos))
+                pos += 1
+        if val >= self.max_value and pos < width:
+            q.append((self.max_value, pos))
         return q
 
     def __transfer_triangle__(self, width, q_top, q_right):
@@ -136,9 +131,12 @@ class BorderBlock:
     def __compute_bottom_right__(self):
         """From q_top and q_left height and width, deduce q_right and q_bottom"""
         self.q_right, self.q_bottom = [], []
-        if self.height == 1 or self.width == 1 or self.cost == 0:
-            self.q_right = self.q_left.copy()
+        if self.height == 1 or self.cost == 0:
             self.q_bottom = self.q_top.copy()
+            self.q_right = [(self.q_top[-1][0], 0)]
+        elif self.width == 1:
+            self.q_right = self.q_left.copy()
+            self.q_bottom = [(self.q_right[-1][0], 0)]
         else:
             # Transfer from left to bottom
             self.__transfer_triangle__(self.height, self.q_left, self.q_bottom)
@@ -153,7 +151,9 @@ class BorderBlock:
 
         assert self.q_bottom[-1][1] < self.width
         assert self.q_right[-1][1] < self.height
-        assert self.q_bottom[-1][0] == self.q_right[-1][0]
+        assert (
+            self.q_bottom[-1][0] == self.q_right[-1][0]
+        ), f"{self.q_bottom[-1][0]} != {self.q_right[-1][0]}"
         self.Vse = self.q_bottom[-1][0]
 
     def __repr_values__(self):

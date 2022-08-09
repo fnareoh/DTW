@@ -76,7 +76,7 @@ def main(nb_tests, size_min, bound_homopol):
     for i in range(nb_tests):
         assert (
             classic_res[i] == dtw_block_res[i] == dtw_border_res[i]
-        ), f"Test failed with {PT_strings[i][0]} {PT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]} vs {dtw_block_res[i]}"
+        ), f"Test failed with {PT_strings[i][0]} {PT_strings[i][1]}: {classic_res[i]} vs {dtw_block_res[i]} vs {dtw_border_res[i]}"
 
     print(f"We performed {nb_tests} tests, all passed !")
 
